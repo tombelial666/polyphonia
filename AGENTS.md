@@ -38,3 +38,11 @@ Before planning or implementation, read:
 - Small technical plan before risky edits
 - Human review before presenting major workflow or architecture shifts
 - Docs update whenever boundaries or process assumptions change
+
+## Domain Specialists
+
+- Use narrow domain specialists for composition support, theory teaching, production guidance, and solfege coaching when that is more useful than a generic assistant.
+- Use `music-director` for mixed music tasks that need light routing across specialist roles.
+- Reuse shared instrument-aware skills instead of duplicating guitar, piano, bass, drums, strings, or voice rules inside every music agent.
+- Keep domain outputs reviewable by separating `Confirmed`, `Assumption`, `Risk`, and `Open Question` where applicable.
+- Do not present stylistic guesses, production certainty, or musical preference as verified fact.

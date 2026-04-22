@@ -27,6 +27,8 @@ PETS is a guitar-focused reference and composition support project built around 
 - Tuning, scale, and fretboard behavior depend on static data files in `assets/`.
 - `build_index.py` is part of the current generation path for `index.html`.
 - The project is being upgraded with a curated AI development layer from donor repositories.
+- The AI layer may include narrow music-domain specialist agents if they stay reviewable and do not bypass human musical judgment.
+- The AI layer may use a light music-direction role and reusable instrument skills, but not a heavy autonomous orchestration stack.
 
 ### Assumption
 
@@ -38,6 +40,8 @@ PETS is a guitar-focused reference and composition support project built around 
 - Copying too much donor infrastructure will add noise and mobile or unrelated domain rules.
 - Treating generated/static outputs as authoring sources may create drift and confusion.
 - Future desktop-shell planning can become speculative if not kept grounded in the current codebase.
+- Music-domain agents can sound authoritative even when they are operating on assumptions or incomplete musical context.
+- Too much duplicated instrument guidance across agents would increase maintenance cost and drift risk.
 
 ### Deferred
 
@@ -57,3 +61,5 @@ PETS is a guitar-focused reference and composition support project built around 
 - Prefer adaptation over blind copying from donor repositories.
 - Every meaningful process decision should be documented with rationale.
 - Major workflow or architecture changes should update this file and affected docs together.
+- Prefer narrow specialist agents with explicit inputs and outputs over monolithic music copilot prompts.
+- Prefer reusable domain skills such as instrument-aware guidance over repeating the same instructions in multiple agent prompts.

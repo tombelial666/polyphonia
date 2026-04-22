@@ -134,6 +134,7 @@
 <script src="assets/scales.data.min.js"></script>
 <script src="assets/chord.class.min.js"></script>
 <script src="assets/scale.class.min.js"></script>
+<script>var SITE_HOME_URL = "";</script>
 <script src="assets/pageMeta.class.min.js"></script>
 <script src="assets/instrumentOptions.class.min.js"></script>
 <script src="assets/scalesPage.min.js"></script>
@@ -142,6 +143,18 @@
 
 <script>
 var NOTE_VALUES = ["a","a-sharp","b","c","c-sharp","d","d-sharp","e","f","f-sharp","g","g-sharp"];
+
+if (typeof PageMeta !== "undefined") {
+  PageMeta.init = function() {
+    this.pageType = "scales";
+    this.isStringed = !!(window.InstrumentOptions && InstrumentOptions.isStringed);
+  };
+  PageMeta.update = function() {};
+}
+if (typeof ScalesPage !== "undefined") {
+  ScalesPage.init = function() {};
+  ScalesPage.formUpdated = function() {};
+}
 
 var instrumentMeta = {
   "guitar":                 {css:"instrument_guitar"},
@@ -160,10 +173,251 @@ var instrumentMeta = {
   "piano":                  {css:"instrument_piano"}
 };
 
+var currentChordState = null;
+
+function getScaleByCode(code) {
+  for (var i = 0; i < allScaleAr.length; i++) if (allScaleAr[i][0] === code) return allScaleAr[i];
+  return null;
+}
+
+function getChordIndexByCode(code) {
+  for (var i = 0; i < allChordAr.length; i++) if (allChordAr[i][0] === code) return i;
+  return -1;
+}
+
+function getCurrentRootKey() {
+  var code = $("#note").val();
+  return code ? Note.getNoteKey(code) : -1;
+}
+
+function getCurrentScaleNoteKeys(rootKey, scaleInfo) {
+  var keys = [];
+  for (var i = 0; i < scaleInfo[1].length; i++) keys.push((scaleInfo[1][i] + rootKey) % Note.allNoteCount);
+  return keys;
+}
+
+function getCurrentTuning(info) {
+  if (info.code === "piano") return info.notes.slice();
+  var tuningCode = $("#tuning").val();
+  if (tuningCode === "custom") {
+    var custom = [];
+    for (var i = 0; i < info.notes.length; i++) custom.push(Note.getNoteKey($("#s"+(i+1)).val()));
+    return custom;
+  }
+  if (!tuningCode) return info.notes.slice();
+  for (var t = 0; t < info.tuningAr.length; t++) if (info.tuningAr[t][0] === tuningCode) return info.tuningAr[t][1].slice();
+  return info.notes.slice();
+}
+
+function updateNoteOptionLabels() {
+  $("#note option").each(function(){
+    var val = $(this).val();
+    $(this).html(Note.getNote(Note.getNoteKey(val)));
+  });
+  $(".stringTuningSelect option").each(function(){
+    var val = $(this).val();
+    $(this).html(Note.getNote(Note.getNoteKey(val)));
+  });
+}
+
+function updateStringedNoteText(info, tuning) {
+  for (var s = 0; s < info.notes.length; s++) {
+    $("#string_label_"+s).attr("data-note", tuning[s]).html(Note.getNote(tuning[s]));
+    for (var f = 0; f <= info.num_frets_desktop; f++) {
+      $("#sfs_"+s+"_"+f).html(Note.getNote((tuning[s] + f) % Note.allNoteCount));
+    }
+  }
+}
+
+function updateCustomTuningUi(info, tuning) {
+  var isCustom = $("#tuning").val() === "custom";
+  $(".customTuningCon").toggleClass("hidden", !isCustom);
+  $("#tuning").toggleClass("isCustom", isCustom);
+  for (var s = 0; s < info.notes.length; s++) {
+    var sel = $("#s"+(s+1));
+    if (sel.length) sel.val(Note.getNote(tuning[s], "url"));
+  }
+}
+
+function updateCapoAndHandedness() {
+  var capo = parseInt($("#capo_fret").val() || "0", 10);
+  var fret = $("#f_"+capo);
+  if (fret.length) {
+    $("#capo_con").appendTo(fret);
+    $("#string_x_con").appendTo(fret);
+  }
+  $("#stringed_display").toggleClass("has_capo", capo > 0);
+  $("#stringed_display").toggleClass("is_lefty", $("#lefty").is(":checked"));
+}
+
+function clearHighlights() {
+  $("#fret_note_con .sf").removeClass("in_scale scale_root in_chord chord_root");
+  $("#piano").find(".in_scale, .scale_root, .in_chord, .chord_root").removeClass("in_scale scale_root in_chord chord_root");
+}
+
+function updateScaleInfo(rootKey, scaleInfo, scaleNoteKeys) {
+  var notes = scaleNoteKeys.map(function(n){ return Note.getNote(n); }).join(", ");
+  $("#scale_info_con").removeClass("hidden");
+  $("#chord_list_con").removeClass("hidden");
+  $("#directions_con").addClass("hidden");
+  $("#info_scale_name").html(Note.getNote(rootKey) + " " + scaleInfo[2]);
+  $("#info_scale_notes").html(notes);
+  $("#info_scale_degrees").html(scaleInfo[4]);
+  $("#info_scale_steps").html(scaleInfo[6]);
+  $("#info_scale_semitones").html(scaleInfo[5]);
+  if (scaleInfo[3]) {
+    $("#info_scale_name_alt_label").removeClass("hidden");
+    $("#info_scale_name_alt").html(scaleInfo[3]).removeClass("hidden");
+  } else {
+    $("#info_scale_name_alt_label").addClass("hidden");
+    $("#info_scale_name_alt").html("").addClass("hidden");
+  }
+}
+
+function clearChordInfo() {
+  currentChordState = null;
+  $("#info_chord_name").html("Select A Chord");
+  $("#info_chord_notes").html("");
+  $("#info_chord_degrees").html("");
+  $("#info_chord_abbrev").html("");
+  $("#info_chord_name_alt_label").addClass("hidden");
+  $("#info_chord_name_alt").html("").addClass("hidden");
+  $("#chord_info").addClass("hidden");
+  $("#scale_chord_table button").removeClass("selected");
+}
+
+function chordNoteKeys(rootKey, chordInfo) {
+  var keys = [];
+  for (var i = 0; i < chordInfo[1].length; i++) keys.push((chordInfo[1][i] + rootKey) % Note.allNoteCount);
+  return keys;
+}
+
+function isChordInScale(rootKey, chordInfo, scaleNoteKeys) {
+  var keys = chordNoteKeys(rootKey, chordInfo);
+  for (var i = 0; i < keys.length; i++) if (scaleNoteKeys.indexOf(keys[i]) < 0) return false;
+  return true;
+}
+
+function renderChordTable(scaleNoteKeys) {
+  var headHtml = "";
+  for (var i = 0; i < scaleNoteKeys.length; i++) headHtml += "<th>" + Note.getNote(scaleNoteKeys[i]) + "</th>";
+  $("#scale_chord_table thead tr").html(headHtml);
+
+  var bodyHtml = "";
+  for (var chordIndex = 0; chordIndex < allChordAr.length; chordIndex++) {
+    var chordInfo = allChordAr[chordIndex];
+    bodyHtml += "<tr class=\"scale_chord_tr\">";
+    for (var noteIndex = 0; noteIndex < scaleNoteKeys.length; noteIndex++) {
+      var rootKey = scaleNoteKeys[noteIndex];
+      var disabled = isChordInScale(rootKey, chordInfo, scaleNoteKeys) ? "" : " disabled=\"disabled\"";
+      var small = chordInfo[4].replace(/&flat;|&sharp;/g, "x").length >= 5 ? " class=\"small\"" : "";
+      bodyHtml += "<td><button type=\"button\" data-root-key=\"" + rootKey + "\" data-chord-index=\"" + chordIndex + "\"" + disabled + small + ">" + Note.getNote(rootKey) + chordInfo[4] + "</button></td>";
+    }
+    bodyHtml += "</tr>";
+  }
+  $("#scale_chord_table tbody").html(bodyHtml);
+}
+
+function applyScaleToStringed(info, tuning, scaleNoteKeys, rootKey) {
+  var capo = parseInt($("#capo_fret").val() || "0", 10);
+  for (var s = 0; s < tuning.length; s++) {
+    for (var f = capo; f <= info.num_frets_desktop; f++) {
+      var noteKey = (tuning[s] + f) % Note.allNoteCount;
+      if (scaleNoteKeys.indexOf(noteKey) >= 0) {
+        var elem = $("#f_"+f).find(".s_"+s);
+        elem.addClass("in_scale");
+        if (noteKey === rootKey) elem.addClass("scale_root");
+      }
+    }
+  }
+}
+
+function applyChordToStringed(info, tuning, chordKeys, rootKey) {
+  var capo = parseInt($("#capo_fret").val() || "0", 10);
+  for (var s = 0; s < tuning.length; s++) {
+    for (var f = capo; f <= info.num_frets_desktop; f++) {
+      var noteKey = (tuning[s] + f) % Note.allNoteCount;
+      if (chordKeys.indexOf(noteKey) >= 0) {
+        var elem = $("#f_"+f).find(".s_"+s);
+        elem.addClass("in_chord");
+        if (noteKey === rootKey) elem.addClass("chord_root");
+      }
+    }
+  }
+}
+
+function ensurePianoInit() {
+  if (instrumentInfo.code !== "piano" || !$("#piano").length) return;
+  if (!window.__offlinePianoInitDone) {
+    KeyPositionPiano.init();
+    window.__offlinePianoInitDone = true;
+  }
+}
+
+function renderSelectedChord(chordIndex, rootKey) {
+  var chordInfo = allChordAr[chordIndex];
+  var chordKeys = chordNoteKeys(rootKey, chordInfo);
+  var chordNotes = chordKeys.map(function(n){ return Note.getNote(n); }).join(", ");
+  currentChordState = { chordIndex: chordIndex, rootKey: rootKey };
+  $("#scale_chord_table button").removeClass("selected");
+  $("#scale_chord_table button[data-root-key=\"" + rootKey + "\"][data-chord-index=\"" + chordIndex + "\"]").addClass("selected");
+  $("#info_chord_name").html(Note.getNote(rootKey) + " " + chordInfo[2]);
+  $("#info_chord_notes").html(chordNotes);
+  $("#info_chord_degrees").html(chordInfo[3]);
+  $("#info_chord_abbrev").html(chordInfo[4] + (chordInfo[5] ? ", " + chordInfo[5] : ""));
+  if (chordInfo[6]) {
+    $("#info_chord_name_alt_label").removeClass("hidden");
+    $("#info_chord_name_alt").html(chordInfo[6]).removeClass("hidden");
+  } else {
+    $("#info_chord_name_alt_label").addClass("hidden");
+    $("#info_chord_name_alt").html("").addClass("hidden");
+  }
+  $("#chord_info").removeClass("hidden");
+  $("#fret_note_con .sf").removeClass("in_chord chord_root");
+  $("#piano").find(".in_chord, .chord_root").removeClass("in_chord chord_root");
+  if (instrumentInfo.code === "piano") {
+    ensurePianoInit();
+    KeyPositionPiano.update(chordKeys, "chord");
+  } else {
+    applyChordToStringed(instrumentInfo, getCurrentTuning(instrumentInfo), chordKeys, rootKey);
+  }
+}
+
+function renderScalePage() {
+  if (!window.instrumentInfo) return;
+  Note.displayFlats = ($("#accidental").val() === "flat");
+  updateNoteOptionLabels();
+  var scaleInfo = getScaleByCode($("#scale").val());
+  var rootKey = getCurrentRootKey();
+  if (!scaleInfo || rootKey < 0) return;
+
+  var tuning = getCurrentTuning(instrumentInfo);
+  if (instrumentInfo.code !== "piano") {
+    updateCustomTuningUi(instrumentInfo, tuning);
+    updateStringedNoteText(instrumentInfo, tuning);
+    updateCapoAndHandedness();
+  }
+
+  var scaleNoteKeys = getCurrentScaleNoteKeys(rootKey, scaleInfo);
+  clearHighlights();
+  updateScaleInfo(rootKey, scaleInfo, scaleNoteKeys);
+  renderChordTable(scaleNoteKeys);
+  clearChordInfo();
+
+  if (instrumentInfo.code === "piano") {
+    ensurePianoInit();
+    KeyPositionPiano.update(scaleNoteKeys, "scale");
+  } else {
+    applyScaleToStringed(instrumentInfo, tuning, scaleNoteKeys, rootKey);
+  }
+}
+
 function generateFretboard(info) {
   var ns = info.notes.length, nf = info.num_frets_desktop;
   var dots = [3,5,7,9,15,17,19,21], dbl = [12,24];
-  var h = "<div id='stringed_display'><div id='fret_marker_con'><div id='string_label_con'>";
+  var h = "<div id='stringed_display'><div id='fret_wood'></div>";
+  for (var s = ns-1; s >= 0; s--) h += "<div id='string_"+s+"' class='string'></div>";
+  h += "<div id='frets_con'><div id='string_label_con'>";
   for (var s = ns-1; s >= 0; s--) {
     var nk = info.notes[s] % 12;
     h += "<div id='string_label_"+s+"' class='string_label' data-note='"+nk+"'>"+Note.getNote(nk)+"</div>";
@@ -176,7 +430,7 @@ function generateFretboard(info) {
     else if (dots.indexOf(f)>=0) h += "<div class='fret_dot'></div>";
     h += "</div></div>";
   }
-  h += "</div><div id='fret_note_con'>";
+  h += "</div><div id='fret_note_con'><div class='note_con spacer'></div>";
   for (var f = 0; f <= nf; f++) {
     var nc = "note_con"+(f>=11?" hidden_tablet":f>=7?" hidden_mobile":"");
     h += "<div id='f_"+f+"' class='"+nc+"'>";
@@ -228,6 +482,7 @@ function updateCapoOptions(info) {
 function switchInstrument(code) {
   var info = allInstrumentsData[code];
   window.instrumentInfo = info;
+  window.__offlinePianoInitDone = false;
   var meta = instrumentMeta[code];
   document.getElementById("instrument_css").href = "assets/"+meta.css+".min.css";
   var isPiano = (code === "piano");
@@ -240,20 +495,24 @@ function switchInstrument(code) {
     $("#tuning_con").html(generateTuningDropdown(info));
     updateCapoOptions(info);
   }
-  PageMeta.pageType = "scales";
-  ScalesPage.init();
-  PageMeta.pageType = "scales";
+  renderScalePage();
 }
 
 $(document).ready(function(){
+  $(document).on("change", "#note, #scale, #accidental, #capo_fret, #lefty, #tuning, .stringTuningSelect", function(){
+    renderScalePage();
+  });
+  $(document).on("click", "#scale_chord_table button", function(event){
+    event.preventDefault();
+    if ($(this).prop("disabled")) return;
+    renderSelectedChord(parseInt($(this).attr("data-chord-index"), 10), parseInt($(this).attr("data-root-key"), 10));
+  });
   window.instrumentInfo = allInstrumentsData["guitar"];
   $("#stringed_section").html(generateFretboard(window.instrumentInfo));
   $("#tuning_con").html(generateTuningDropdown(window.instrumentInfo));
   updateCapoOptions(window.instrumentInfo);
-  PageMeta.pageType = "scales";
-  ScalesPage.init();
-  PageMeta.pageType = "scales";
   $("#app_instrument_select").on("change", function(){ switchInstrument(this.value); });
+  renderScalePage();
 });
 </script>
 </body>

@@ -10,6 +10,23 @@ Minimal curated skill set for PETS.
 - `code-review`
 - `docs-maintenance`
 
+## Music Domain
+
+- `music-direction`
+- `composition-guidance`
+- `music-theory-teaching`
+- `production-advisory`
+- `solfege-coaching`
+
+## Instrument Layer
+
+- `guitar-guidance`
+- `piano-guidance`
+- `bass-guidance`
+- `drums-guidance`
+- `strings-guidance`
+- `voice-guidance`
+
 ## Desktop Direction
 
 - `desktop-shell-migration`

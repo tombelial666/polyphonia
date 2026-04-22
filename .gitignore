@@ -1,6 +1,8 @@
 build/
 dist/
 __pycache__/
+.pytest_cache/
+qa/results/
 *.pyc
 *.pyo
 *.pyd

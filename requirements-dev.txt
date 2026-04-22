@@ -1,0 +1,3 @@
+# Optional dev / QA dependencies for PETS (not required to run phrygian_app.py)
+pytest>=8.0
+playwright>=1.40

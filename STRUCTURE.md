@@ -50,6 +50,16 @@ Execution and planning artifacts live in:
 
 These files support work tracking and human review.
 
+### 4.1 QA Layer (repository-local)
+
+Quality assurance material that is **not** runtime product code lives in:
+
+- `qa/README.md` — scope and rules for this layer
+- `qa/packages/<feature>/` — versioned QA docs (test design, cases, traceability, runbooks)
+- `tests/` — executable checks (`tests/e2e/` for browser-level scenarios)
+
+Machine-generated output from local or CI runs must go to `qa/results/`, which is **gitignored** so reports and scratch files do not pollute the canonical tree.
+
 ### 5. Generated / Disposable Layer
 
 These files are not source-of-truth:
@@ -57,6 +67,7 @@ These files are not source-of-truth:
 - `build/`
 - `dist/`
 - `__pycache__/`
+- `qa/results/` (JUnit, logs, screenshots from test runs)
 - saved-page artifacts such as `A Phrygian Dominant.html` and `A Phrygian Dominant_files/`
 
 ## Boundary Rules
