@@ -1,0 +1,309 @@
+version: 1
+project: PETS
+
+impact_surfaces:
+  runtime_execution:
+    description: Current application execution path.
+    nodes:
+      - path: phrygian_app.py
+        role: shell-entry
+      - path: index.html
+        role: runtime-html
+      - path: assets/
+        role: runtime-assets
+      - path: ChordRocks.spec
+        role: packaging-spec
+    edges:
+      - from: phrygian_app.py
+        to: index.html
+        type: loads
+      - from: index.html
+        to: assets/
+        type: loads
+      - from: ChordRocks.spec
+        to: phrygian_app.py
+        type: packages
+      - from: ChordRocks.spec
+        to: index.html
+        type: packages
+      - from: ChordRocks.spec
+        to: assets/
+        type: packages
+
+  html_generation:
+    description: Current generation path for the runnable HTML.
+    nodes:
+      - path: build_index.py
+        role: generator
+      - path: guitar_template.html
+        role: template
+      - path: piano_template.html
+        role: template
+      - path: assets/_piano_html.txt
+        role: html-fragment
+      - path: index.html
+        role: generated-runtime-output
+    edges:
+      - from: build_index.py
+        to: guitar_template.html
+        type: reads
+      - from: build_index.py
+        to: piano_template.html
+        type: reads
+      - from: build_index.py
+        to: assets/_piano_html.txt
+        type: reads
+      - from: build_index.py
+        to: index.html
+        type: writes
+
+  theory_data:
+    description: Music-theory dictionaries and their consumers.
+    nodes:
+      - path: assets/chords.data.min.js
+        role: chord-data
+      - path: assets/scales.data.min.js
+        role: scale-data
+      - path: assets/chord.class.min.js
+        role: chord-logic
+      - path: assets/scale.class.min.js
+        role: scale-logic
+      - path: assets/scalesPage.min.js
+        role: page-controller
+    edges:
+      - from: assets/chords.data.min.js
+        to: assets/chord.class.min.js
+        type: feeds
+      - from: assets/scales.data.min.js
+        to: assets/scale.class.min.js
+        type: feeds
+      - from: assets/chord.class.min.js
+        to: assets/scalesPage.min.js
+        type: supports
+      - from: assets/scale.class.min.js
+        to: assets/scalesPage.min.js
+        type: supports
+
+  instrument_data:
+    description: Instrument metadata and duplicated runtime snapshots.
+    nodes:
+      - path: assets/all_instruments.js
+        role: registry
+      - path: assets/instrument.guitar.data.min.js
+        role: snapshot
+      - path: assets/instrument.bass-guitar.data.min.js
+        role: snapshot
+      - path: assets/instrument.ukulele.data.min.js
+        role: snapshot
+      - path: assets/instrument.violin-fiddle.data.min.js
+        role: snapshot
+      - path: assets/instrument.mandolin.data.min.js
+        role: snapshot
+      - path: assets/instrument.piano.data.min.js
+        role: snapshot
+      - path: assets/instrument.5-string-bass-guitar.data.min.js
+        role: snapshot
+      - path: assets/instrument.6-string-bass-guitar.data.min.js
+        role: snapshot
+      - path: assets/instrument.7-string-guitar.data.min.js
+        role: snapshot
+      - path: assets/instrument.8-string-guitar.data.min.js
+        role: snapshot
+      - path: assets/instrument.9-string-guitar.data.min.js
+        role: snapshot
+      - path: assets/instrument.10-string-guitar.data.min.js
+        role: snapshot
+      - path: assets/instrument.baritone-guitar.data.min.js
+        role: snapshot
+      - path: assets/instrument.5-string-violin-fiddle.data.min.js
+        role: snapshot
+      - path: assets/instrumentOptions.class.min.js
+        role: runtime-consumer
+      - path: assets/scalesPage.min.js
+        role: runtime-consumer
+    edges:
+      - from: assets/all_instruments.js
+        to: assets/instrumentOptions.class.min.js
+        type: informs-runtime-selection
+      - from: assets/instrument.guitar.data.min.js
+        to: assets/instrumentOptions.class.min.js
+        type: supplies-page-context
+      - from: assets/instrument.bass-guitar.data.min.js
+        to: assets/instrumentOptions.class.min.js
+        type: supplies-page-context
+      - from: assets/instrument.ukulele.data.min.js
+        to: assets/instrumentOptions.class.min.js
+        type: supplies-page-context
+      - from: assets/instrument.violin-fiddle.data.min.js
+        to: assets/instrumentOptions.class.min.js
+        type: supplies-page-context
+      - from: assets/instrument.mandolin.data.min.js
+        to: assets/instrumentOptions.class.min.js
+        type: supplies-page-context
+      - from: assets/instrument.piano.data.min.js
+        to: assets/instrumentOptions.class.min.js
+        type: supplies-page-context
+      - from: assets/instrument.5-string-bass-guitar.data.min.js
+        to: assets/instrumentOptions.class.min.js
+        type: supplies-page-context
+      - from: assets/instrument.6-string-bass-guitar.data.min.js
+        to: assets/instrumentOptions.class.min.js
+        type: supplies-page-context
+      - from: assets/instrument.7-string-guitar.data.min.js
+        to: assets/instrumentOptions.class.min.js
+        type: supplies-page-context
+      - from: assets/instrument.8-string-guitar.data.min.js
+        to: assets/instrumentOptions.class.min.js
+        type: supplies-page-context
+      - from: assets/instrument.9-string-guitar.data.min.js
+        to: assets/instrumentOptions.class.min.js
+        type: supplies-page-context
+      - from: assets/instrument.10-string-guitar.data.min.js
+        to: assets/instrumentOptions.class.min.js
+        type: supplies-page-context
+      - from: assets/instrument.baritone-guitar.data.min.js
+        to: assets/instrumentOptions.class.min.js
+        type: supplies-page-context
+      - from: assets/instrument.5-string-violin-fiddle.data.min.js
+        to: assets/instrumentOptions.class.min.js
+        type: supplies-page-context
+      - from: assets/instrumentOptions.class.min.js
+        to: assets/scalesPage.min.js
+        type: updates-ui-state
+
+  ui_logic:
+    description: Main UI logic and visual update flow.
+    nodes:
+      - path: assets/jquery.min.js
+        role: vendor
+      - path: assets/note.class.min.js
+        role: helper
+      - path: assets/pageMeta.class.min.js
+        role: meta
+      - path: assets/instrumentOptions.class.min.js
+        role: controller
+      - path: assets/scalesStringed.class.min.js
+        role: stringed-highlighting
+      - path: assets/keyPositionPiano.class.min.js
+        role: piano-highlighting
+      - path: assets/scalesPage.min.js
+        role: orchestrator
+    edges:
+      - from: assets/jquery.min.js
+        to: assets/scalesPage.min.js
+        type: supports-dom-events
+      - from: assets/note.class.min.js
+        to: assets/instrumentOptions.class.min.js
+        type: supports-note-display
+      - from: assets/note.class.min.js
+        to: assets/scalesPage.min.js
+        type: supports-note-display
+      - from: assets/instrumentOptions.class.min.js
+        to: assets/scalesStringed.class.min.js
+        type: drives-stringed-refresh
+      - from: assets/instrumentOptions.class.min.js
+        to: assets/keyPositionPiano.class.min.js
+        type: drives-piano-refresh
+      - from: assets/pageMeta.class.min.js
+        to: assets/scalesPage.min.js
+        type: receives-page-state
+
+  adapter_layer:
+    description: Development adapter and sync flow.
+    nodes:
+      - path: AGENTS.md
+        role: primary-agent-guide
+      - path: CLAUDE.md
+        role: mirrored-agent-guide
+      - path: .cursor/
+        role: primary-adapter-layer
+      - path: .claude/
+        role: mirrored-adapter-layer
+      - path: scripts/sync_docs.py
+        role: sync-helper
+      - path: scripts/sync_configs.py
+        role: sync-helper
+      - path: .cursor/hooks.json
+        role: hook-config
+    edges:
+      - from: AGENTS.md
+        to: CLAUDE.md
+        type: mirrored-by
+        via: scripts/sync_docs.py
+      - from: .cursor/
+        to: .claude/
+        type: mirrored-by
+        via: scripts/sync_configs.py
+      - from: .cursor/hooks.json
+        to: scripts/sync_docs.py
+        type: invokes
+      - from: .cursor/hooks.json
+        to: scripts/sync_configs.py
+        type: invokes
+
+  legacy_reference:
+    description: Historical and misleading artifacts that should not be treated as active sources.
+    nodes:
+      - path: A Phrygian Dominant.html
+        role: saved-page
+      - path: A Phrygian Dominant.spec
+        role: legacy-packaging
+      - path: A Phrygian Dominant_files/
+        role: saved-page-bundle
+      - path: build/A Phrygian Dominant/
+        role: legacy-build-cache
+      - path: build/ChordRocks/
+        role: active-build-cache
+    edges:
+      - from: A Phrygian Dominant.html
+        to: A Phrygian Dominant_files/
+        type: loads
+      - from: A Phrygian Dominant.spec
+        to: A Phrygian Dominant.html
+        type: packages
+      - from: A Phrygian Dominant.spec
+        to: A Phrygian Dominant_files/
+        type: packages
+      - from: build/A Phrygian Dominant/
+        to: A Phrygian Dominant.spec
+        type: derived-from
+      - from: build/ChordRocks/
+        to: ChordRocks.spec
+        type: derived-from
+
+risk_hotspots:
+  - name: mixed-authoring-runtime-boundary
+    severity: high
+    paths:
+      - build_index.py
+      - index.html
+      - guitar_template.html
+      - piano_template.html
+    reason: >
+      Current runtime mixes generated output and authoring inputs, making it easy
+      to edit the wrong file.
+  - name: duplicated-instrument-data
+    severity: high
+    paths:
+      - assets/all_instruments.js
+      - assets/instrument.*.data.min.js
+    reason: >
+      Instrument configuration is duplicated between a readable registry and
+      per-instrument runtime snapshots.
+  - name: minified-logic-without-obvious-source
+    severity: medium
+    paths:
+      - assets/*.class.min.js
+      - assets/scalesPage.min.js
+      - assets/*.min.css
+    reason: >
+      Most frontend logic and styling exist only as minified bundles inside this repo.
+  - name: saved-page-confusion
+    severity: high
+    paths:
+      - A Phrygian Dominant.html
+      - A Phrygian Dominant_files/
+      - A Phrygian Dominant.spec
+      - build/A Phrygian Dominant/
+    reason: >
+      Legacy saved-page artifacts strongly resemble the real app and can mislead agents.

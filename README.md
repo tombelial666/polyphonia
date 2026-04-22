@@ -35,6 +35,11 @@ PETS is being prepared as an AI-first, human-in-the-loop guitar application for 
 - `docs/desktop-transition-roadmap.md` - migration path from `pywebview` to a desktop shell
 - `docs/dev-workflow/commands-reference.md` - minimal AI workflow
 - `docs/ai-foundation-bootstrap.md` - donor inventory and scored decisions
+- `docs/legacy-index.md` - full legacy map of the repository root and layers
+- `docs/legacy-assets-index.md` - detailed asset-layer inventory
+- `docs/legacy-reference-index.md` - detailed build/reference/saved-page inventory
+- `repo-index.yaml` - machine-readable repository index
+- `impact-map.yaml` - machine-readable impact and dependency map
 
 ## Agent Layers
 

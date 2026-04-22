@@ -1,0 +1,544 @@
+version: 1
+project:
+  name: PETS
+  root: D:\Reps\PETS
+  purpose: >
+    Guitar-focused local reference and composition support project with a legacy
+    static-web runtime, a pywebview shell, and a curated in-repo AI development layer.
+
+layer_summary:
+  canonical:
+    description: Project identity, workflow truth, structure, and documentation.
+  runtime:
+    description: Files that currently execute or directly support the active app.
+  adapter:
+    description: Cursor and Claude development guidance and synchronization files.
+  generated:
+    description: Rebuildable outputs and packaging artifacts.
+  reference:
+    description: Historical or saved-page materials not used by the active runtime.
+  disposable:
+    description: Build and packaging output safe to regenerate.
+
+entries:
+  - path: README.md
+    layer: canonical
+    status: authoritative
+    role: overview
+    description: Project entry point and source-of-truth overview.
+  - path: MANIFEST.md
+    layer: canonical
+    status: authoritative
+    role: identity
+    description: Identity, principles, scope, risks, and AI development rules.
+  - path: STRUCTURE.md
+    layer: canonical
+    status: authoritative
+    role: repository-structure
+    description: Canonical layer model for the repository.
+  - path: AGENTS.md
+    layer: canonical
+    status: authoritative
+    role: agent-guidance
+    description: Primary editable guide for agent workflows.
+  - path: CLAUDE.md
+    layer: generated
+    status: mirror
+    role: agent-guidance
+    description: Mirror generated from AGENTS.md for Claude-style workflows.
+    generated_from:
+      - AGENTS.md
+      - scripts/sync_docs.py
+  - path: PETS.code-workspace
+    layer: canonical
+    status: authoritative
+    role: workspace
+    description: Primary IDE workspace definition.
+  - path: .gitignore
+    layer: canonical
+    status: authoritative
+    role: workspace-control
+    description: Clean-baseline ignore rules for build, cache, and reference artifacts.
+
+  - path: phrygian_app.py
+    layer: runtime
+    status: authoritative
+    role: shell
+    description: pywebview launcher for the current local desktop runtime.
+    depends_on:
+      - index.html
+  - path: build_index.py
+    layer: runtime
+    status: authoritative
+    role: build-helper
+    description: Current HTML assembly helper; writes index.html.
+    depends_on:
+      - guitar_template.html
+      - piano_template.html
+      - assets/_piano_html.txt
+    notes:
+      - contains absolute paths and is therefore fragile
+  - path: index.html
+    layer: runtime
+    status: authoritative-runtime-output
+    role: ui-entry
+    description: Active runnable page loaded by the shell.
+    depends_on:
+      - assets/all_instruments.js
+      - assets/chords.data.min.js
+      - assets/scales.data.min.js
+      - assets/jquery.min.js
+      - assets/note.class.min.js
+      - assets/chord.class.min.js
+      - assets/scale.class.min.js
+      - assets/pageMeta.class.min.js
+      - assets/instrumentOptions.class.min.js
+      - assets/scalesPage.min.js
+      - assets/scalesStringed.class.min.js
+      - assets/keyPositionPiano.class.min.js
+      - assets/styles.min.css
+      - assets/instrument_stringed.min.css
+      - assets/instrument_options.min.css
+      - assets/scales_info.min.css
+  - path: guitar_template.html
+    layer: runtime
+    status: authoritative-build-input
+    role: template
+    description: Template source for stringed UI form controls.
+  - path: piano_template.html
+    layer: runtime
+    status: authoritative-build-input
+    role: template
+    description: Template source for piano UI assembly.
+  - path: ChordRocks.spec
+    layer: runtime
+    status: authoritative
+    role: packaging
+    description: Current PyInstaller spec for the active runtime path.
+    depends_on:
+      - phrygian_app.py
+      - index.html
+      - assets/
+
+  - path: docs/
+    layer: canonical
+    status: authoritative
+    role: documentation-root
+    description: Canonical documentation tree.
+  - path: docs/architecture.md
+    layer: canonical
+    status: authoritative
+    role: architecture
+    description: Current runtime and near-term target architecture.
+  - path: docs/desktop-transition-roadmap.md
+    layer: canonical
+    status: authoritative
+    role: roadmap
+    description: Transition roadmap from pywebview to a future desktop shell.
+  - path: docs/documentation-standard.md
+    layer: canonical
+    status: authoritative
+    role: doc-policy
+    description: Documentation maintenance rules.
+  - path: docs/dev-workflow/commands-reference.md
+    layer: canonical
+    status: authoritative
+    role: workflow
+    description: Minimal adapted AI workflow.
+  - path: docs/ai-foundation-bootstrap.md
+    layer: canonical
+    status: authoritative
+    role: donor-analysis
+    description: Donor inventory and scored decisions.
+  - path: docs/repo-index.md
+    layer: canonical
+    status: authoritative
+    role: repo-summary
+    description: Short repository overview.
+  - path: docs/legacy-index.md
+    layer: canonical
+    status: authoritative
+    role: legacy-index
+    description: Full root-level legacy map.
+  - path: docs/legacy-assets-index.md
+    layer: canonical
+    status: authoritative
+    role: assets-index
+    description: Detailed asset-layer map.
+  - path: docs/legacy-reference-index.md
+    layer: canonical
+    status: authoritative
+    role: reference-index
+    description: Detailed map of build, dist, and saved-page artifacts.
+  - path: docs/adr/README.md
+    layer: canonical
+    status: authoritative
+    role: adr-index
+    description: ADR index and usage note.
+  - path: docs/adr/TEMPLATE.md
+    layer: canonical
+    status: authoritative
+    role: adr-template
+    description: ADR template.
+  - path: docs/templates/discovery-template.md
+    layer: canonical
+    status: authoritative
+    role: task-template
+    description: Discovery template.
+  - path: docs/templates/technical-decomposition-template.md
+    layer: canonical
+    status: authoritative
+    role: task-template
+    description: Technical decomposition template.
+  - path: docs/templates/code-review-template.md
+    layer: canonical
+    status: authoritative
+    role: task-template
+    description: Code review template.
+  - path: docs/changelogs/README.md
+    layer: canonical
+    status: authoritative
+    role: changelog-policy
+    description: Changelog convention note.
+
+  - path: tasks/
+    layer: canonical
+    status: authoritative
+    role: task-root
+    description: Task and execution note root.
+  - path: tasks/_template.md
+    layer: canonical
+    status: authoritative
+    role: task-template
+    description: Default task template.
+
+  - path: .cursor/
+    layer: adapter
+    status: authoritative-adapter
+    role: cursor-layer
+    description: Primary AI tooling layer.
+  - path: .cursor/hooks.json
+    layer: adapter
+    status: authoritative-adapter
+    role: hooks
+    description: Post-edit sync hooks.
+  - path: .cursor/rules/
+    layer: adapter
+    status: authoritative-adapter
+    role: rules
+    description: PETS-specific Cursor rules.
+  - path: .cursor/skills/
+    layer: adapter
+    status: authoritative-adapter
+    role: skills
+    description: Curated skills for discovery, planning, implementation, review, docs, and desktop migration.
+  - path: .cursor/agents/
+    layer: adapter
+    status: authoritative-adapter
+    role: agents
+    description: Curated reviewer and updater agents.
+  - path: .cursor/commands/
+    layer: adapter
+    status: authoritative-adapter
+    role: command-helpers
+    description: Minimal command prompts for common workflows.
+
+  - path: .claude/
+    layer: generated
+    status: active-mirror
+    role: claude-layer
+    description: Mirrored adapter layer generated from .cursor.
+    generated_from:
+      - .cursor/
+      - scripts/sync_configs.py
+
+  - path: scripts/sync_docs.py
+    layer: adapter
+    status: authoritative-helper
+    role: sync-script
+    description: Mirrors AGENTS.md into CLAUDE.md.
+  - path: scripts/sync_configs.py
+    layer: adapter
+    status: authoritative-helper
+    role: sync-script
+    description: Mirrors .cursor into .claude, excluding hooks.json.
+
+  - path: assets/
+    layer: runtime
+    status: authoritative-runtime-data
+    role: asset-root
+    description: Flat legacy frontend asset bundle.
+  - path: assets/all_instruments.js
+    layer: runtime
+    status: authoritative-readable-registry
+    role: instrument-registry
+    description: Readable instrument registry across supported instruments.
+  - path: assets/_piano_html.txt
+    layer: runtime
+    status: authoritative-build-input
+    role: piano-fragment
+    description: HTML fragment inserted into generated page.
+  - path: assets/chords-logo.png
+    layer: runtime
+    status: authoritative-runtime-media
+    role: media
+    description: Logo asset used by the current page.
+  - path: assets/chords.data.min.js
+    layer: runtime
+    status: authoritative-runtime-data
+    role: chord-data
+    description: Chord dictionary bundle.
+  - path: assets/scales.data.min.js
+    layer: runtime
+    status: authoritative-runtime-data
+    role: scale-data
+    description: Scale dictionary bundle.
+    notes:
+      - duplicate or repeated scale identifiers should be treated carefully
+  - path: assets/jquery.min.js
+    layer: runtime
+    status: vendor
+    role: vendor-js
+    description: jQuery dependency.
+  - path: assets/note.class.min.js
+    layer: runtime
+    status: runtime-logic
+    role: note-logic
+    description: Note formatting and note-key helpers.
+  - path: assets/chord.class.min.js
+    layer: runtime
+    status: runtime-logic
+    role: chord-logic
+    description: Chord state and loading logic.
+  - path: assets/scale.class.min.js
+    layer: runtime
+    status: runtime-logic
+    role: scale-logic
+    description: Scale state and loading logic.
+  - path: assets/pageMeta.class.min.js
+    layer: runtime
+    status: runtime-logic
+    role: page-meta
+    description: Legacy page metadata and navigation helper.
+  - path: assets/instrumentOptions.class.min.js
+    layer: runtime
+    status: runtime-logic
+    role: instrument-options
+    description: Tuning, capo, lefty, and fretboard update logic.
+  - path: assets/scalesStringed.class.min.js
+    layer: runtime
+    status: runtime-logic
+    role: fretboard-highlighting
+    description: Scale and chord highlighting for stringed instruments.
+  - path: assets/keyPositionPiano.class.min.js
+    layer: runtime
+    status: runtime-logic
+    role: piano-highlighting
+    description: Scale and chord highlighting for piano.
+  - path: assets/scalesPage.min.js
+    layer: runtime
+    status: runtime-controller
+    role: page-controller
+    description: Main page orchestration for scales mode.
+  - path: assets/styles.min.css
+    layer: runtime
+    status: runtime-style
+    role: css
+    description: Base site CSS.
+  - path: assets/scales_info.min.css
+    layer: runtime
+    status: runtime-style
+    role: css
+    description: Information panel CSS.
+  - path: assets/instrument_options.min.css
+    layer: runtime
+    status: runtime-style
+    role: css
+    description: Option panel CSS.
+  - path: assets/instrument_stringed.min.css
+    layer: runtime
+    status: runtime-style
+    role: css
+    description: Shared stringed-instrument CSS.
+  - path: assets/instrument.guitar.data.min.js
+    layer: runtime
+    status: duplicated-runtime-snapshot
+    role: instrument-snapshot
+    description: Per-instrument snapshot for guitar.
+  - path: assets/instrument.bass-guitar.data.min.js
+    layer: runtime
+    status: duplicated-runtime-snapshot
+    role: instrument-snapshot
+    description: Per-instrument snapshot for bass guitar.
+  - path: assets/instrument.ukulele.data.min.js
+    layer: runtime
+    status: duplicated-runtime-snapshot
+    role: instrument-snapshot
+    description: Per-instrument snapshot for ukulele.
+  - path: assets/instrument.violin-fiddle.data.min.js
+    layer: runtime
+    status: duplicated-runtime-snapshot
+    role: instrument-snapshot
+    description: Per-instrument snapshot for violin/fiddle.
+  - path: assets/instrument.mandolin.data.min.js
+    layer: runtime
+    status: duplicated-runtime-snapshot
+    role: instrument-snapshot
+    description: Per-instrument snapshot for mandolin.
+  - path: assets/instrument.piano.data.min.js
+    layer: runtime
+    status: duplicated-runtime-snapshot
+    role: instrument-snapshot
+    description: Per-instrument snapshot for piano.
+  - path: assets/instrument.5-string-bass-guitar.data.min.js
+    layer: runtime
+    status: duplicated-runtime-snapshot
+    role: instrument-snapshot
+    description: Per-instrument snapshot for 5-string bass guitar.
+  - path: assets/instrument.6-string-bass-guitar.data.min.js
+    layer: runtime
+    status: duplicated-runtime-snapshot
+    role: instrument-snapshot
+    description: Per-instrument snapshot for 6-string bass guitar.
+  - path: assets/instrument.7-string-guitar.data.min.js
+    layer: runtime
+    status: duplicated-runtime-snapshot
+    role: instrument-snapshot
+    description: Per-instrument snapshot for 7-string guitar.
+  - path: assets/instrument.8-string-guitar.data.min.js
+    layer: runtime
+    status: duplicated-runtime-snapshot
+    role: instrument-snapshot
+    description: Per-instrument snapshot for 8-string guitar.
+  - path: assets/instrument.9-string-guitar.data.min.js
+    layer: runtime
+    status: duplicated-runtime-snapshot
+    role: instrument-snapshot
+    description: Per-instrument snapshot for 9-string guitar.
+  - path: assets/instrument.10-string-guitar.data.min.js
+    layer: runtime
+    status: duplicated-runtime-snapshot
+    role: instrument-snapshot
+    description: Per-instrument snapshot for 10-string guitar.
+  - path: assets/instrument.baritone-guitar.data.min.js
+    layer: runtime
+    status: duplicated-runtime-snapshot
+    role: instrument-snapshot
+    description: Per-instrument snapshot for baritone guitar.
+  - path: assets/instrument.5-string-violin-fiddle.data.min.js
+    layer: runtime
+    status: duplicated-runtime-snapshot
+    role: instrument-snapshot
+    description: Per-instrument snapshot for 5-string violin/fiddle.
+  - path: assets/instrument_guitar.min.css
+    layer: runtime
+    status: runtime-style
+    role: instrument-css
+    description: Instrument-specific CSS for guitar.
+  - path: assets/instrument_bass-guitar.min.css
+    layer: runtime
+    status: runtime-style
+    role: instrument-css
+    description: Instrument-specific CSS for bass guitar.
+  - path: assets/instrument_ukulele.min.css
+    layer: runtime
+    status: runtime-style
+    role: instrument-css
+    description: Instrument-specific CSS for ukulele.
+  - path: assets/instrument_violin-fiddle.min.css
+    layer: runtime
+    status: runtime-style
+    role: instrument-css
+    description: Instrument-specific CSS for violin/fiddle.
+  - path: assets/instrument_mandolin.min.css
+    layer: runtime
+    status: runtime-style
+    role: instrument-css
+    description: Instrument-specific CSS for mandolin.
+  - path: assets/instrument_piano.min.css
+    layer: runtime
+    status: runtime-style
+    role: instrument-css
+    description: Instrument-specific CSS for piano.
+  - path: assets/instrument_5-string-bass-guitar.min.css
+    layer: runtime
+    status: runtime-style
+    role: instrument-css
+    description: Instrument-specific CSS for 5-string bass guitar.
+  - path: assets/instrument_6-string-bass-guitar.min.css
+    layer: runtime
+    status: runtime-style
+    role: instrument-css
+    description: Instrument-specific CSS for 6-string bass guitar.
+  - path: assets/instrument_7-string-guitar.min.css
+    layer: runtime
+    status: runtime-style
+    role: instrument-css
+    description: Instrument-specific CSS for 7-string guitar.
+  - path: assets/instrument_8-string-guitar.min.css
+    layer: runtime
+    status: runtime-style
+    role: instrument-css
+    description: Instrument-specific CSS for 8-string guitar.
+  - path: assets/instrument_9-string-guitar.min.css
+    layer: runtime
+    status: runtime-style
+    role: instrument-css
+    description: Instrument-specific CSS for 9-string guitar.
+  - path: assets/instrument_10-string-guitar.min.css
+    layer: runtime
+    status: runtime-style
+    role: instrument-css
+    description: Instrument-specific CSS for 10-string guitar.
+  - path: assets/instrument_baritone-guitar.min.css
+    layer: runtime
+    status: runtime-style
+    role: instrument-css
+    description: Instrument-specific CSS for baritone guitar.
+  - path: assets/instrument_5-string-violin-fiddle.min.css
+    layer: runtime
+    status: runtime-style
+    role: instrument-css
+    description: Instrument-specific CSS for 5-string violin/fiddle.
+
+  - path: build/
+    layer: generated
+    status: disposable
+    role: build-cache-root
+    description: PyInstaller build output and diagnostics.
+  - path: build/ChordRocks/
+    layer: generated
+    status: disposable
+    role: active-build-cache
+    description: Build cache for the active packaging path.
+  - path: build/A Phrygian Dominant/
+    layer: generated
+    status: disposable-legacy
+    role: legacy-build-cache
+    description: Build cache for the legacy packaging path.
+  - path: dist/
+    layer: generated
+    status: disposable
+    role: packaging-output
+    description: Expected packaged output directory.
+
+  - path: A Phrygian Dominant.html
+    layer: reference
+    status: non-core
+    role: saved-page
+    description: Browser-saved page snapshot.
+  - path: A Phrygian Dominant.spec
+    layer: reference
+    status: non-core
+    role: legacy-packaging
+    description: Legacy spec oriented around the saved-page path.
+  - path: A Phrygian Dominant_files/
+    layer: reference
+    status: non-core
+    role: saved-page-bundle
+    description: Saved-page resource bundle with duplicates, widgets, and browser-save artifacts.
+
+legacy_notes:
+  - The active runtime path is phrygian_app.py -> index.html -> assets/.
+  - The cleanest readable instrument source is all_instruments.js, but runtime still uses duplicated per-instrument snapshots.
+  - Saved-page artifacts can easily mislead agents and should never be treated as product truth.

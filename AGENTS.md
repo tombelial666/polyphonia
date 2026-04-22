@@ -13,6 +13,11 @@ Before planning or implementation, read:
 3. `docs/architecture.md`
 4. `docs/desktop-transition-roadmap.md`
 5. `docs/ai-foundation-bootstrap.md`
+6. `docs/legacy-index.md`
+7. `docs/legacy-assets-index.md`
+8. `docs/legacy-reference-index.md`
+9. `repo-index.yaml`
+10. `impact-map.yaml`
 
 ## Source Of Truth
 

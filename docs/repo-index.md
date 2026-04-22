@@ -32,11 +32,16 @@
 - `docs/architecture.md`
 - `docs/desktop-transition-roadmap.md`
 - `docs/ai-foundation-bootstrap.md`
+- `docs/legacy-index.md`
+- `docs/legacy-assets-index.md`
+- `docs/legacy-reference-index.md`
 - `docs/dev-workflow/commands-reference.md`
 - `docs/documentation-standard.md`
 - `docs/adr/`
 - `docs/templates/`
 - `tasks/_template.md`
+- `repo-index.yaml`
+- `impact-map.yaml`
 
 ## Non-Core Reference Artifacts
 

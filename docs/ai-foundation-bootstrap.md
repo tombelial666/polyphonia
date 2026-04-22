@@ -171,3 +171,57 @@ Scoring model:
 | Risk containment | 11 | Lowers accidental edits in wrong files |
 | Future desktop-shell leverage | 6 | Indirect benefit only |
 | **Total** | **77/96** | Strong cleanup boundary |
+
+## Decision 7 - Create A Full Legacy Index Instead Of A Minimal Index
+
+**Decision**: document the legacy project in depth rather than stopping at a short overview.
+
+**Why**: PETS has mixed runtime, generated, reference, and adapter layers; shallow indexing would still leave too much ambiguity for agents and future refactoring.
+
+| Criterion | Score | Notes |
+|-----------|------:|-------|
+| Product fit | 10 | Helps a legacy-heavy guitar tool stay understandable |
+| Current codebase fit | 11 | The project genuinely needs this depth |
+| Human-in-the-loop value | 12 | Humans can audit each layer explicitly |
+| AI workflow usefulness | 12 | Agents get better grounding and fewer false targets |
+| Simplicity of rollout | 7 | More documentation work than a minimal index |
+| Maintenance cost efficiency | 9 | Costs more now but reduces repeated rediscovery later |
+| Risk containment | 12 | Strongly lowers wrong-file edits and confusion |
+| Future desktop-shell leverage | 10 | Better migration starting point |
+| **Total** | **83/96** | Strong decision for a legacy-rich repository |
+
+## Decision 8 - Split Legacy Indexing Into Root, Assets, And Reference Documents
+
+**Decision**: use multiple detailed docs instead of one monolithic giant file.
+
+**Why**: the repository has several different confusion surfaces; splitting them keeps depth while preserving readability.
+
+| Criterion | Score | Notes |
+|-----------|------:|-------|
+| Product fit | 9 | Matches the real repository shape |
+| Current codebase fit | 10 | Root, assets, and saved-page/reference layers are meaningfully different |
+| Human-in-the-loop value | 11 | Easier for a human to audit one layer at a time |
+| AI workflow usefulness | 10 | Agents can target the right map faster |
+| Simplicity of rollout | 8 | Slightly more files to maintain |
+| Maintenance cost efficiency | 9 | Better than one huge unreadable doc |
+| Risk containment | 11 | Keeps reference noise separate from runtime truth |
+| Future desktop-shell leverage | 9 | Helps migration work focus on the correct layer |
+| **Total** | **77/96** | Good balance of depth and navigability |
+
+## Decision 9 - Add Machine-Readable Repository And Impact Maps
+
+**Decision**: add `repo-index.yaml` and `impact-map.yaml` alongside the human-readable docs.
+
+**Why**: some future workflows and agents benefit from structured indexing, not only prose.
+
+| Criterion | Score | Notes |
+|-----------|------:|-------|
+| Product fit | 8 | More infrastructure than product, but useful |
+| Current codebase fit | 10 | Good match for a legacy repo with blurred boundaries |
+| Human-in-the-loop value | 8 | Humans may read them less directly than docs |
+| AI workflow usefulness | 12 | Highest value for structured agent navigation |
+| Simplicity of rollout | 8 | More effort than prose docs alone |
+| Maintenance cost efficiency | 9 | Worth it if the repo keeps evolving |
+| Risk containment | 10 | Gives explicit machine-readable boundaries |
+| Future desktop-shell leverage | 10 | Strong input for migration planning and tooling |
+| **Total** | **75/96** | Worth adding as structured support artifacts |
