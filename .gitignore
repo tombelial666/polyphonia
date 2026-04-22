@@ -1,0 +1,9 @@
+build/
+dist/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+A Phrygian Dominant.html
+A Phrygian Dominant.spec
+A Phrygian Dominant_files/

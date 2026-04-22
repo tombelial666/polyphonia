@@ -1,0 +1,21 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python scripts/sync_docs.py",
+            "description": "Sync CLAUDE.md from AGENTS.md after agent-guide edits"
+          },
+          {
+            "type": "command",
+            "command": "python scripts/sync_configs.py",
+            "description": "Sync .cursor into .claude after adapter-layer edits"
+          }
+        ]
+      }
+    ]
+  }
+}

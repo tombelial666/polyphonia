@@ -1,0 +1,11 @@
+---
+description: PETS decision integrity
+alwaysApply: true
+---
+
+# Decision Integrity
+
+- Always separate `Confirmed`, `Assumption`, `Risk`, `Deferred`, and `Open Question` when discussing architecture, workflow, or product direction.
+- Do not invent unverified capabilities.
+- Do not present desktop-shell roadmap ideas as already implemented.
+- Do not silently convert reference artifacts into editable source-of-truth files.

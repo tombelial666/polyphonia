@@ -1,0 +1,12 @@
+---
+description: PETS project direction
+alwaysApply: true
+---
+
+# Project Direction
+
+- Read `MANIFEST.md` before making architecture-shaping decisions.
+- Treat PETS as a long-lived project, not a throwaway static page dump.
+- Keep the product AI-first and human-in-the-loop.
+- Preserve the distinction between current `pywebview` runtime and future desktop-shell direction.
+- Do not treat saved-page artifacts as project truth.

@@ -1,0 +1,18 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/.git": true,
+      "**/A Phrygian Dominant.html": true,
+      "**/A Phrygian Dominant.spec": true,
+      "**/A Phrygian Dominant_files": true,
+      "**/__pycache__": true,
+      "**/build": true,
+      "**/dist": true
+    }
+  }
+}

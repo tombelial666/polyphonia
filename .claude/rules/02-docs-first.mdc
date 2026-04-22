@@ -1,0 +1,11 @@
+---
+description: PETS docs-first rule
+alwaysApply: true
+---
+
+# Docs First
+
+- If a decision changes project direction, workflow boundaries, or source-of-truth rules, update `MANIFEST.md` and the affected docs before or together with code.
+- Keep repository truth in files, not only in chat.
+- Use `docs/documentation-standard.md` when creating or revising substantial docs.
+- Keep substantial work represented in `tasks/`.

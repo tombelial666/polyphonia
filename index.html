@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<title>Chord.Rocks - Offline</title>
+<link rel="stylesheet" href="assets/styles.min.css">
+<link rel="stylesheet" href="assets/instrument_stringed.min.css">
+<link rel="stylesheet" href="assets/instrument_options.min.css">
+<link rel="stylesheet" href="assets/scales_info.min.css">
+<link id="instrument_css" rel="stylesheet" href="assets/instrument_guitar.min.css">
+<style>
+#app_bar{background:#2c3e50;padding:8px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#app_bar label{color:#aaa;font-size:13px;white-space:nowrap}
+#app_instrument_select{padding:5px 10px;font-size:14px;border-radius:4px;border:none;background:#ecf0f1}
+#piano_section{display:none}
+.hidden{display:none}
+</style>
+</head>
+<body>
+
+<div id="app_bar">
+  <img src="assets/chords-logo.png" alt="Chord.Rocks" height="32">
+  <label for="app_instrument_select">Instrument:</label>
+  <select id="app_instrument_select">
+    <option value="guitar">Guitar</option>
+    <option value="piano">Piano</option>
+    <option value="bass-guitar">Bass Guitar</option>
+    <option value="ukulele">Ukulele</option>
+    <option value="violin-fiddle">Violin / Fiddle</option>
+    <option value="mandolin">Mandolin</option>
+    <option value="5-string-bass-guitar">5 String Bass Guitar</option>
+    <option value="6-string-bass-guitar">6 String Bass Guitar</option>
+    <option value="7-string-guitar">7 String Guitar</option>
+    <option value="8-string-guitar">8 String Guitar</option>
+    <option value="9-string-guitar">9 String Guitar</option>
+    <option value="10-string-guitar">10 String Guitar</option>
+    <option value="baritone-guitar">Baritone Guitar</option>
+    <option value="5-string-violin-fiddle">5 String Violin / Fiddle</option>
+  </select>
+</div>
+
+<div id="page_content_con">
+<form method="get" action="#" onsubmit="return false">
+
+  <div class="info_con" id="option_con">
+    <div>
+      <div class="op" id="tuning_op">
+        <label for="tuning">Tuning</label>
+        <div id="tuning_con"></div>
+      </div>
+      <div class="op">
+        <label for="accidental">Accidental</label>
+        <select name="accidental" id="accidental">
+          <option value="sharp" selected>Sharp</option>
+          <option value="flat">Flat</option>
+        </select>
+      </div>
+    </div>
+    <div>
+      <div class="op">
+        <label for="note">Note</label>
+<select name="note" id="note" size="12"><option value="a" selected="selected">A</option><option value="a-sharp">A&sharp;</option><option value="b">B</option><option value="c">C</option><option value="c-sharp">C&sharp;</option><option value="d">D</option><option value="d-sharp">D&sharp;</option><option value="e">E</option><option value="f">F</option><option value="f-sharp">F&sharp;</option><option value="g">G</option><option value="g-sharp">G&sharp;</option></select>
+      </div>
+      <div class="op">
+        <label for="scale">Scale</label>
+<select name="scale" id="scale" size="12"><option value="major" selected="selected">Major</option><option value="natural-minor">Natural Minor</option><option value="harmonic-minor">Harmonic Minor</option><option value="dorian">Dorian</option><option value="mixolydian">Mixolydian</option><option value="ionian-augmented">Ionian Augmented</option><option value="phrygian">Phrygian</option><option value="locrian">Locrian</option><option value="phrygian-dominant">Phrygian Dominant</option><option value="melodic-minor">Melodic Minor</option><option value="lydian-augmented">Lydian Augmented</option><option value="acoustic">Acoustic</option><option value="lydian">Lydian</option><option value="aeolian-dominant">Aeolian Dominant</option><option value="altered">Altered</option><option value="bebop-dominant">Bebop Dominant</option><option value="bebop-major">Bebop Major</option><option value="bebop-minor">Bebop Minor</option><option value="bebop-melodic-minor">Bebop Melodic Minor</option><option value="blues-major">Blues Major</option><option value="blues-minor">Blues Minor</option><option value="blues-diminished">Blues Diminished</option><option value="gypsy-major">Gypsy Major</option><option value="gypsy-minor">Gypsy Minor</option><option value="hungarian-gypsy">Hungarian Gypsy</option><option value="major-pentatonic">Major Pentatonic</option><option value="neutral-pentatonic">Neutral Pentatonic</option><option value="rock-pentatonic">Rock Pentatonic</option><option value="scottish-pentatonic">Scottish Pentatonic</option><option value="minor-pentatonic">Minor Pentatonic</option><option value="whole">Whole</option><option value="whole-half">Whole-Half</option><option value="augmented">Augmented</option><option value="chromatic">Chromatic</option><option value="enigmatic-ascending">Enigmatic (Ascending)</option><option value="enigmatic-descending">Enigmatic (Descending)</option><option value="hungarian-major">Hungarian Major</option><option value="neapolitan-major">Neapolitan Major</option><option value="neapolitan-minor">Neapolitan Minor</option><option value="prometheus">Prometheus</option><option value="prometheus-neapolitan">Prometheus Neapolitan</option><option value="spanish-8-tone">Spanish 8 Tone</option><option value="bayati-shuri">Bayati Shuri</option><option value="hijaz">Hijaz</option><option value="hijaz-kar">Hijaz Kar</option><option value="huzam">Huzam</option><option value="nikriz">Nikriz</option><option value="saba">Saba</option><option value="suznak">Suznak</option><option value="jue">Jue</option><option value="neveseri">Neveseri</option><option value="pireaus">Pireaus</option><option value="segah">Segah</option><option value="tsinganikos">Tsinganikos</option><option value="charukeshi">Charukeshi</option><option value="dharmaavati">Dharmaavati</option><option value="lataangi">Lataangi</option><option value="marwa">Marwa</option><option value="natakpriya">Natakpriya</option><option value="rampriya">Rampriya</option><option value="suryakant">Suryakant</option><option value="todi">Todi</option><option value="vachaspati">Vachaspati</option><option value="joshi-akikaze">Joshi-Akikaze</option><option value="joshi-hira">Joshi-Hira</option><option value="joshi-iwato">Joshi-Iwato</option><option value="joshi-kokin">Joshi-Kokin</option><option value="joshi-kumoi">Joshi-Kumoi</option><option value="joshi-okinawa">Joshi-Okinawa</option><option value="sen-in">Sen-In</option></select>
+      </div>
+    </div>
+    <div id="stringed_extra_ops">
+      <div class="op">
+        <label for="capo_fret">Capo</label>
+        <select name="capo_fret" id="capo_fret"><option value="0">None</option></select>
+      </div>
+      <div class="op">
+        <label><input type="checkbox" id="lefty"> Left Handed</label>
+      </div>
+    </div>
+  </div>
+
+  <div id="submit_button_con" class="hidden"><button type="submit">Go</button></div>
+  <div id="op_submit_button_con" class="hidden"><button type="submit">Update</button></div>
+
+  <div id="stringed_section"></div>
+
+  <div id="piano_section">
+<div id="piano" data-num-keys="33" data-start-note-key="1">
+
+	<div class="key_con"><div class="tr"><div class="white_key hide_mobile hide_tablet" id="note_num_1"><span>B</span><div class="black_key is_before is_first hide_mobile hide_tablet" id="note_num_0"><span>A&sharp;</span></div></div><div class="white_key hide_mobile hide_tablet" id="note_num_2"><span>C</span></div><div class="white_key hide_mobile is_first_tablet" id="note_num_4"><span>D</span><div class="black_key is_before hide_mobile hide_tablet" id="note_num_3"><span>C&sharp;</span></div></div><div class="white_key is_first_mobile" id="note_num_6"><span>E</span><div class="black_key is_before hide_mobile" id="note_num_5"><span>D&sharp;</span></div></div><div class="white_key" id="note_num_7"><span>F</span></div><div class="white_key" id="note_num_9"><span>G</span><div class="black_key is_before" id="note_num_8"><span>F&sharp;</span></div></div><div class="white_key in_scale scale_root" id="note_num_11"><span>A</span><div class="black_key is_before" id="note_num_10"><span>G&sharp;</span></div></div><div class="white_key in_scale" id="note_num_13"><span>B</span><div class="black_key is_before" id="note_num_12"><span>A&sharp;</span></div></div><div class="white_key" id="note_num_14"><span>C</span></div><div class="white_key in_scale" id="note_num_16"><span>D</span><div class="black_key is_before in_scale" id="note_num_15"><span>C&sharp;</span></div><div class="black_key is_after" id="note_num_17"><span>D&sharp;</span></div></div><div class="white_key in_scale" id="note_num_18"><span>E</span></div><div class="white_key" id="note_num_19"><span>F</span><div class="black_key is_after in_scale" id="note_num_20"><span>F&sharp;</span></div></div><div class="white_key" id="note_num_21"><span>G</span><div class="black_key is_after in_scale" id="note_num_22"><span>G&sharp;</span></div></div><div class="white_key in_scale" id="note_num_23"><span>A</span><div class="black_key is_after" id="note_num_24"><span>A&sharp;</span></div></div><div class="white_key is_last_mobile" id="note_num_25"><span>B</span></div><div class="white_key hide_mobile" id="note_num_26"><span>C</span><div class="black_key is_after hide_mobile is_last_tablet" id="note_num_27"><span>C&sharp;</span></div></div><div class="white_key hide_mobile hide_tablet" id="note_num_28"><span>D</span><div class="black_key is_after hide_mobile hide_tablet" id="note_num_29"><span>D&sharp;</span></div></div><div class="white_key hide_mobile hide_tablet" id="note_num_30"><span>E</span></div><div class="white_key hide_mobile hide_tablet" id="note_num_31"><span>F</span><div class="black_key is_after is_last hide_mobile hide_tablet" id="note_num_32"><span>F&sharp;</span></div></div></div></div>
+
+</div>
+  </div>
+
+  <div class="info_con" id="info_con">
+    <div id="scale_info_con">
+      <div class="header">Scale Info</div>
+      <h2 id="info_scale_name"></h2>
+      <dl>
+        <dt>notes</dt><dd id="info_scale_notes"></dd>
+        <dt>degrees</dt><dd id="info_scale_degrees"></dd>
+        <dt>steps</dt><dd id="info_scale_steps"></dd>
+        <dt>semitones</dt><dd id="info_scale_semitones"></dd>
+        <dt id="info_scale_name_alt_label">alternative name</dt>
+        <dd id="info_scale_name_alt"></dd>
+      </dl>
+      <div class="header">Chord Info</div>
+      <h2 id="info_chord_name">Select A Chord</h2>
+      <aside id="chord_info" class="hidden">
+        <dl>
+          <dt>notes</dt><dd id="info_chord_notes"></dd>
+          <dt>degrees</dt><dd id="info_chord_degrees"></dd>
+          <dt>abbreviation</dt><dd id="info_chord_abbrev"></dd>
+          <dt id="info_chord_name_alt_label" class="hidden">alternative name</dt>
+          <dd id="info_chord_name_alt" class="hidden"></dd>
+        </dl>
+      </aside>
+    </div>
+    <div id="directions_con"></div>
+    <div id="chord_list_con">
+      <table id="scale_chord_table">
+        <thead><tr class="scale_chord_tr"></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+</form>
+</div>
+
+<script src="assets/jquery.min.js"></script>
+<script src="assets/all_instruments.js"></script>
+<script src="assets/note.class.min.js"></script>
+<script src="assets/chords.data.min.js"></script>
+<script src="assets/scales.data.min.js"></script>
+<script src="assets/chord.class.min.js"></script>
+<script src="assets/scale.class.min.js"></script>
+<script src="assets/pageMeta.class.min.js"></script>
+<script src="assets/instrumentOptions.class.min.js"></script>
+<script src="assets/scalesPage.min.js"></script>
+<script src="assets/scalesStringed.class.min.js"></script>
+<script src="assets/keyPositionPiano.class.min.js"></script>
+
+<script>
+var NOTE_VALUES = ["a","a-sharp","b","c","c-sharp","d","d-sharp","e","f","f-sharp","g","g-sharp"];
+
+var instrumentMeta = {
+  "guitar":                 {css:"instrument_guitar"},
+  "bass-guitar":            {css:"instrument_bass-guitar"},
+  "ukulele":                {css:"instrument_ukulele"},
+  "violin-fiddle":          {css:"instrument_violin-fiddle"},
+  "mandolin":               {css:"instrument_mandolin"},
+  "5-string-bass-guitar":   {css:"instrument_5-string-bass-guitar"},
+  "6-string-bass-guitar":   {css:"instrument_6-string-bass-guitar"},
+  "7-string-guitar":        {css:"instrument_7-string-guitar"},
+  "8-string-guitar":        {css:"instrument_8-string-guitar"},
+  "9-string-guitar":        {css:"instrument_9-string-guitar"},
+  "10-string-guitar":       {css:"instrument_10-string-guitar"},
+  "baritone-guitar":        {css:"instrument_baritone-guitar"},
+  "5-string-violin-fiddle": {css:"instrument_5-string-violin-fiddle"},
+  "piano":                  {css:"instrument_piano"}
+};
+
+function generateFretboard(info) {
+  var ns = info.notes.length, nf = info.num_frets_desktop;
+  var dots = [3,5,7,9,15,17,19,21], dbl = [12,24];
+  var h = "<div id='stringed_display'><div id='fret_marker_con'><div id='string_label_con'>";
+  for (var s = ns-1; s >= 0; s--) {
+    var nk = info.notes[s] % 12;
+    h += "<div id='string_label_"+s+"' class='string_label' data-note='"+nk+"'>"+Note.getNote(nk)+"</div>";
+  }
+  h += "</div>";
+  for (var f = 0; f <= nf; f++) {
+    var fc = "fret_con"+(f>=11?" hidden_tablet":f>=7?" hidden_mobile":"");
+    h += "<div class='"+fc+"' id='fret_"+f+"'><div class='fret_label'>"+f+"</div><div class='fret'>";
+    if (dbl.indexOf(f)>=0) h += "<div class='fret_dot dot_b'></div><div class='fret_dot dot_t'></div>";
+    else if (dots.indexOf(f)>=0) h += "<div class='fret_dot'></div>";
+    h += "</div></div>";
+  }
+  h += "</div><div id='fret_note_con'>";
+  for (var f = 0; f <= nf; f++) {
+    var nc = "note_con"+(f>=11?" hidden_tablet":f>=7?" hidden_mobile":"");
+    h += "<div id='f_"+f+"' class='"+nc+"'>";
+    if (f===0) {
+      h += "<div id='capo_con'><div class='capo'></div></div><div id='string_x_con'>";
+      for (var s = ns-1; s >= 0; s--) h += "<div id='s_x_"+s+"' class='sf'><span>X</span></div>";
+      h += "</div>";
+    }
+    for (var s = ns-1; s >= 0; s--) {
+      var nk = (info.notes[s]+f) % 12;
+      h += "<div class='sf s_"+s+"'><span class='sfs' id='sfs_"+s+"_"+f+"'>"+Note.getNote(nk)+"</span></div>";
+    }
+    h += "</div>";
+  }
+  h += "</div></div>";
+  return h;
+}
+
+function generateTuningDropdown(info) {
+  var ns = info.notes.length;
+  var stdNotes = info.notes.slice().reverse().map(function(n){return Note.getNote(n);}).join("");
+  var h = "<select name='tuning' id='tuning'><option value=''>Standard ("+stdNotes+")</option><option value='custom'>-- Custom --</option>";
+  info.tuningAr.forEach(function(t){
+    var n = t[1].slice().reverse().map(function(k){return Note.getNote(k);}).join("");
+    h += "<option value='"+t[0]+"'>"+t[2]+" ("+n+")</option>";
+  });
+  h += "</select><div class='customTuningCon hidden'>";
+  for (var s = ns; s >= 1; s--) {
+    var cur = info.notes[s-1] % 12;
+    h += "<div><select name='s"+s+"' id='s"+s+"' class='stringTuningSelect'>";
+    NOTE_VALUES.forEach(function(val,idx){
+      h += "<option value='"+val+"'"+(idx===cur?" selected":"")+">"+Note.getNote(idx)+"</option>";
+    });
+    h += "</select></div>";
+  }
+  h += "</div>";
+  return h;
+}
+
+function updateCapoOptions(info) {
+  var sel = document.getElementById("capo_fret");
+  if (!sel) return;
+  var html = "<option value='0'>None</option>";
+  for (var f = 1; f <= (info.num_frets_tablet||10); f++)
+    html += "<option value='"+f+"'>Fret "+f+"</option>";
+  sel.innerHTML = html;
+}
+
+function switchInstrument(code) {
+  var info = allInstrumentsData[code];
+  window.instrumentInfo = info;
+  var meta = instrumentMeta[code];
+  document.getElementById("instrument_css").href = "assets/"+meta.css+".min.css";
+  var isPiano = (code === "piano");
+  $("#stringed_section").toggle(!isPiano);
+  $("#piano_section").toggle(isPiano);
+  $("#tuning_op").toggle(!isPiano);
+  $("#stringed_extra_ops").toggle(!isPiano);
+  if (!isPiano) {
+    $("#stringed_section").html(generateFretboard(info));
+    $("#tuning_con").html(generateTuningDropdown(info));
+    updateCapoOptions(info);
+  }
+  PageMeta.pageType = "scales";
+  ScalesPage.init();
+  PageMeta.pageType = "scales";
+}
+
+$(document).ready(function(){
+  window.instrumentInfo = allInstrumentsData["guitar"];
+  $("#stringed_section").html(generateFretboard(window.instrumentInfo));
+  $("#tuning_con").html(generateTuningDropdown(window.instrumentInfo));
+  updateCapoOptions(window.instrumentInfo);
+  PageMeta.pageType = "scales";
+  ScalesPage.init();
+  PageMeta.pageType = "scales";
+  $("#app_instrument_select").on("change", function(){ switchInstrument(this.value); });
+});
+</script>
+</body>
+</html>
