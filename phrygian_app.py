@@ -347,7 +347,8 @@ class PolyphoniaApi:
         ev = str(payload.get("event") or "client_event")
         msg = str(payload.get("message") or "")[:2000]
         href = str(payload.get("href") or "")[:400]
-        _log("client", event=ev, message=msg, href=href)
+        # Avoid naming collision with _log(event=...) positional argument.
+        _log("client", client_event=ev, message=msg, href=href)
         return json.dumps({"ok": True}, ensure_ascii=False)
 
     @_api_log_wrap
@@ -430,14 +431,31 @@ class PolyphoniaApi:
         if not _is_windows():
             return json.dumps({"ok": False, "error": "not_supported"}, ensure_ascii=False)
         try:
-            repo = str(Path(get_base()).resolve())
+            repo_path = Path(get_base()).resolve()
+            script = repo_path / "scripts" / "claude_terminal.py"
+            if not script.is_file():
+                return json.dumps(
+                    {
+                        "ok": False,
+                        "error": "missing_launcher",
+                        "message": "Не найден scripts/claude_terminal.py рядом с приложением. Запускайте из корня репозитория PETS.",
+                        "base": str(repo_path),
+                    },
+                    ensure_ascii=False,
+                )
+            # Preflight: if Claude CLI not on PATH, keep console open with a clear message.
+            import shutil
+
+            has_claude = bool(shutil.which("claude"))
             creationflags = getattr(subprocess, "CREATE_NEW_CONSOLE", 0x00000010)
-            subprocess.Popen(
-                ["python", "scripts/claude_terminal.py"],
-                cwd=repo,
-                creationflags=creationflags,
-            )
-            return json.dumps({"ok": True}, ensure_ascii=False)
+            if has_claude:
+                # Use current Python interpreter so it works even if "python" isn't on PATH.
+                cmd = ["cmd.exe", "/k", sys.executable, str(script)]
+            else:
+                msg = "echo Claude CLI не найден в PATH. Установите Claude Code и выполните: claude login"
+                cmd = ["cmd.exe", "/k", msg]
+            subprocess.Popen(cmd, cwd=str(repo_path), creationflags=creationflags)
+            return json.dumps({"ok": True, "has_claude": has_claude}, ensure_ascii=False)
         except Exception as e:
             return json.dumps({"ok": False, "error": "spawn_failed", "message": str(e)}, ensure_ascii=False)
 
