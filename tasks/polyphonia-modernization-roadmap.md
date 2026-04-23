@@ -145,6 +145,7 @@ flowchart LR
 
 ## Committed change record
 
+- **2026-04-23:** следующий runtime-boundary slice: OpenAI transport и request assembly вынесены из `phrygian_app.py` в `polyphonia_runtime/openai_client.py`; `openai_ping`, `validate_openai_key` и `openai_chat` оставлены как orchestration-обёртки, добавлен прямой тест `tests/test_openai_client.py`.
 - **2026-04-23:** следующий runtime-boundary slice: Assist dialog markdown logging вынесен из `phrygian_app.py` в `polyphonia_runtime/dialog_log.py`; `PolyphoniaApi.append_assist_dialog_md` сохранён как тонкая обёртка, добавлен прямой тест `tests/test_dialog_log.py`.
 - **2026-04-23:** следующий runtime-boundary slice: persisted auth и OpenAI thread storage вынесены из `phrygian_app.py` в `polyphonia_runtime/session_store.py` и `polyphonia_runtime/thread_store.py`; API `PolyphoniaApi` сохранён через тонкие обёртки, покрытие добавлено в `tests/test_session_store.py` и `tests/test_thread_store.py`.
 - **2026-04-23:** старт Phase 1 refactor slice: MusicXML export helper вынесен из `phrygian_app.py` в `polyphonia_runtime/musicxml_export.py`; обновлены `STRUCTURE.md`, `docs/architecture.md`, `repo-index.yaml`, покрытие расширено тестом `tests/test_musicxml_export.py`.

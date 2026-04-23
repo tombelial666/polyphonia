@@ -16,6 +16,7 @@ from typing import Any
 import webview
 from polyphonia_runtime import dialog_log
 from polyphonia_runtime import musicxml_export
+from polyphonia_runtime import openai_client
 from polyphonia_runtime import session_store
 from polyphonia_runtime import thread_store
 
@@ -924,7 +925,7 @@ class PolyphoniaApi:
                     "ok": True,
                     "ui_mode": "offline",
                     "source": "none",
-                    "model_default": (os.environ.get("OPENAI_MODEL") or "gpt-4o-mini").strip(),
+                    "model_default": openai_client.default_openai_model(os.environ),
                     "session_origin": None,
                     "persisted": bool(str(_load_persisted_auth().get("openai_key") or "").strip()),
                 },
@@ -938,7 +939,7 @@ class PolyphoniaApi:
             source = "session"
         else:
             source = "none"
-        model = (os.environ.get("OPENAI_MODEL") or "gpt-4o-mini").strip()
+        model = openai_client.default_openai_model(os.environ)
         return json.dumps(
             {
                 "ok": True,
@@ -1050,41 +1051,16 @@ class PolyphoniaApi:
                 },
                 ensure_ascii=False,
             )
-        req = urllib.request.Request(
-            "https://api.openai.com/v1/models",
-            headers={"Authorization": "Bearer " + key},
-            method="GET",
+        result = openai_client.ping_models(
+            key,
+            timeout=25,
+            read_limit=16384,
+            urlopen=urllib.request.urlopen,
+            request_ctor=urllib.request.Request,
         )
-        try:
-            with urllib.request.urlopen(req, timeout=25) as resp:
-                status = int(getattr(resp, "status", 200) or 200)
-                _ = resp.read(16384)
-        except urllib.error.HTTPError as e:
-            try:
-                detail = e.read().decode("utf-8", errors="replace")[:1200]
-            except Exception:
-                detail = str(e)
-            return json.dumps(
-                {
-                    "ok": False,
-                    "error": "http_error",
-                    "status": e.code,
-                    "message": detail,
-                },
-                ensure_ascii=False,
-            )
-        except urllib.error.URLError as e:
-            return json.dumps(
-                {"ok": False, "error": "network", "message": str(e.reason or e)},
-                ensure_ascii=False,
-            )
-        except Exception as e:
-            return json.dumps(
-                {"ok": False, "error": "request_failed", "message": str(e)},
-                ensure_ascii=False,
-            )
-        _log("openai_ping", ok=True, http_status=status)
-        return json.dumps({"ok": True, "http_status": status}, ensure_ascii=False)
+        if result.get("ok"):
+            _log("openai_ping", ok=True, http_status=result.get("http_status"))
+        return json.dumps(result, ensure_ascii=False)
 
     @_api_log_wrap
     def validate_openai_key(self, payload_json: str = "") -> str:
@@ -1103,75 +1079,14 @@ class PolyphoniaApi:
         key = key_override or (_resolve_openai_key() or "")
         if not key:
             return json.dumps({"ok": False, "error": "missing_api_key", "message": "Нет ключа OpenAI."}, ensure_ascii=False)
-        req = urllib.request.Request(
-            "https://api.openai.com/v1/models",
-            headers={"Authorization": "Bearer " + key},
-            method="GET",
+        model = openai_client.default_openai_model(os.environ)
+        result = openai_client.validate_key_with_chat_probe(
+            key,
+            model=model,
+            urlopen=urllib.request.urlopen,
+            request_ctor=urllib.request.Request,
         )
-        try:
-            with urllib.request.urlopen(req, timeout=25) as resp:
-                status = int(getattr(resp, "status", 200) or 200)
-                _ = resp.read(2048)
-        except urllib.error.HTTPError as e:
-            try:
-                detail = e.read().decode("utf-8", errors="replace")[:500]
-            except Exception:
-                detail = str(e)
-            return json.dumps({"ok": False, "error": "http_error", "status": e.code, "message": detail}, ensure_ascii=False)
-        except urllib.error.URLError as e:
-            return json.dumps({"ok": False, "error": "network", "message": str(e.reason or e)}, ensure_ascii=False)
-        except Exception as e:
-            return json.dumps({"ok": False, "error": "request_failed", "message": str(e)}, ensure_ascii=False)
-        # Also probe the same endpoint used by chat to catch model/billing issues early.
-        model = (os.environ.get("OPENAI_MODEL") or "gpt-4o-mini").strip()
-        probe_body = {
-            "model": model,
-            "messages": [{"role": "user", "content": "ping"}],
-            "max_tokens": 1,
-            "temperature": 0,
-        }
-        probe_req = urllib.request.Request(
-            "https://api.openai.com/v1/chat/completions",
-            data=json.dumps(probe_body).encode("utf-8"),
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + key,
-            },
-            method="POST",
-        )
-        try:
-            with urllib.request.urlopen(probe_req, timeout=30) as resp:
-                probe_status = int(getattr(resp, "status", 200) or 200)
-                _ = resp.read(2048)
-            return json.dumps(
-                {"ok": True, "http_status": status, "chat_probe_status": probe_status, "model": model},
-                ensure_ascii=False,
-            )
-        except urllib.error.HTTPError as e:
-            try:
-                detail = e.read().decode("utf-8", errors="replace")[:1200]
-            except Exception:
-                detail = str(e)
-            return json.dumps(
-                {
-                    "ok": False,
-                    "error": "chat_probe_http_error",
-                    "status": e.code,
-                    "message": detail,
-                    "model": model,
-                },
-                ensure_ascii=False,
-            )
-        except urllib.error.URLError as e:
-            return json.dumps(
-                {"ok": False, "error": "chat_probe_network", "message": str(e.reason or e), "model": model},
-                ensure_ascii=False,
-            )
-        except Exception as e:
-            return json.dumps(
-                {"ok": False, "error": "chat_probe_failed", "message": str(e), "model": model},
-                ensure_ascii=False,
-            )
+        return json.dumps(result, ensure_ascii=False)
 
     @_api_log_wrap
     def validate_claude_key(self, payload_json: str = "") -> str:
@@ -1253,7 +1168,7 @@ class PolyphoniaApi:
         if len(user_text) > 12000:
             user_text = user_text[:12000] + "\n…(truncated)"
 
-        model = (payload.get("model") or os.environ.get("OPENAI_MODEL") or "gpt-4o-mini").strip()
+        model = (payload.get("model") or openai_client.default_openai_model(os.environ)).strip()
         include_ctx = bool(payload.get("include_context"))
         goal_mode = str(payload.get("goal_mode") or "auto").strip().lower()
         key_id = _openai_key_id(key)
@@ -1272,123 +1187,70 @@ class PolyphoniaApi:
         ctx = payload.get("context_json")
         ctx_block = _format_context_block(ctx) if include_ctx else None
 
-        messages: list[dict[str, str]] = [{"role": "system", "content": _OPENAI_SYSTEM}]
         goal_hint = _goal_mode_system_hint(goal_mode)
-        if goal_hint:
-            messages.append({"role": "system", "content": goal_hint})
-        if ctx_block:
-            messages.append({"role": "user", "content": ctx_block})
-        for m in _thread_openai_messages(key_id, thread_id):
-            messages.append(m)
-        messages.append({"role": "user", "content": user_text})
-
-        body = {
-            "model": model,
-            "messages": messages,
-            "temperature": 0.6,
-            "max_tokens": 1200,
-        }
-        req = urllib.request.Request(
-            "https://api.openai.com/v1/chat/completions",
-            data=json.dumps(body).encode("utf-8"),
-            headers={
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + key,
-            },
-            method="POST",
+        body = openai_client.build_chat_body(
+            system_prompt=_OPENAI_SYSTEM,
+            goal_hint=goal_hint,
+            context_block=ctx_block,
+            history_messages=_thread_openai_messages(key_id, thread_id),
+            user_text=user_text,
+            model=model,
+            temperature=0.6,
+            max_tokens=1200,
         )
+        transport = None
         try:
             t0 = time.perf_counter()
-            with urllib.request.urlopen(req, timeout=90) as resp:
-                raw = resp.read().decode("utf-8", errors="replace")
-                status = int(getattr(resp, "status", 200) or 200)
+            transport = openai_client.post_chat_completion(
+                key,
+                body,
+                timeout=90,
+                urlopen=urllib.request.urlopen,
+                request_ctor=urllib.request.Request,
+            )
             if _trace_enabled():
-                _log("openai_chat_http", trace_id=trace_id, http_status=status, elapsed_ms=int((time.perf_counter() - t0) * 1000))
-        except urllib.error.HTTPError as e:
-            try:
-                detail = e.read().decode("utf-8", errors="replace")[:2000]
-            except Exception:
-                detail = str(e)
-            if _trace_enabled():
-                _log("openai_chat_http_error", trace_id=trace_id, status=e.code)
-            _append_thread_event(
-                key_id,
-                thread_id,
-                {
-                    "role": "user",
-                    "text": user_text,
-                    "trace_id": trace_id,
-                    "model": model,
-                },
-            )
-            _append_thread_event(
-                key_id,
-                thread_id,
-                {
-                    "role": "gpt_error",
-                    "text": detail,
-                    "trace_id": trace_id,
-                    "status": e.code,
-                },
-            )
-            return json.dumps(
-                {
-                    "ok": False,
-                    "error": "http_error",
-                    "status": e.code,
-                    "message": detail,
-                    "trace_id": trace_id,
-                    "thread_id": thread_id,
-                    "key_id": key_id,
-                }
-            )
-        except urllib.error.URLError as e:
-            if _trace_enabled():
-                _log("openai_chat_network_error", trace_id=trace_id, message=str(e.reason or e))
-            _append_thread_event(key_id, thread_id, {"role": "user", "text": user_text, "trace_id": trace_id, "model": model})
-            _append_thread_event(
-                key_id,
-                thread_id,
-                {"role": "gpt_error", "text": str(e.reason or e), "trace_id": trace_id, "error": "network"},
-            )
-            return json.dumps(
-                {
-                    "ok": False,
-                    "error": "network",
-                    "message": str(e.reason or e),
-                    "trace_id": trace_id,
-                    "thread_id": thread_id,
-                    "key_id": key_id,
-                }
-            )
-        except Exception as e:
-            if _trace_enabled():
-                _log("openai_chat_request_failed", trace_id=trace_id, message=str(e))
-            _append_thread_event(key_id, thread_id, {"role": "user", "text": user_text, "trace_id": trace_id, "model": model})
-            _append_thread_event(
-                key_id,
-                thread_id,
-                {"role": "gpt_error", "text": str(e), "trace_id": trace_id, "error": "request_failed"},
-            )
-            return json.dumps(
-                {
-                    "ok": False,
-                    "error": "request_failed",
-                    "message": str(e),
-                    "thread_id": thread_id,
-                    "key_id": key_id,
-                }
-            )
+                if transport.get("ok"):
+                    _log("openai_chat_http", trace_id=trace_id, http_status=transport.get("http_status"), elapsed_ms=int((time.perf_counter() - t0) * 1000))
+                elif transport.get("error") == "http_error":
+                    _log("openai_chat_http_error", trace_id=trace_id, status=transport.get("status"))
+                elif transport.get("error") == "network":
+                    _log("openai_chat_network_error", trace_id=trace_id, message=str(transport.get("message") or ""))
+                else:
+                    _log("openai_chat_request_failed", trace_id=trace_id, message=str(transport.get("message") or ""))
+        except Exception:
+            transport = {"ok": False, "error": "request_failed", "message": "transport_wrapper_failed"}
 
-        try:
-            data = json.loads(raw)
-            content = (
-                (data.get("choices") or [{}])[0]
-                .get("message", {})
-                .get("content", "")
+        if not transport.get("ok"):
+            _append_thread_event(key_id, thread_id, {"role": "user", "text": user_text, "trace_id": trace_id, "model": model})
+            gpt_error_event = {
+                "role": "gpt_error",
+                "text": str(transport.get("message") or ""),
+                "trace_id": trace_id,
+            }
+            if transport.get("error") == "http_error" and transport.get("status") is not None:
+                gpt_error_event["status"] = transport.get("status")
+            else:
+                gpt_error_event["error"] = transport.get("error")
+            _append_thread_event(
+                key_id,
+                thread_id,
+                gpt_error_event,
             )
-            if not isinstance(content, str):
-                content = str(content)
+            out = {
+                "ok": False,
+                "error": transport.get("error"),
+                "message": str(transport.get("message") or ""),
+                "trace_id": trace_id,
+                "thread_id": thread_id,
+                "key_id": key_id,
+            }
+            if transport.get("status") is not None:
+                out["status"] = transport.get("status")
+            return json.dumps(out)
+
+        parsed = openai_client.parse_chat_completion_content(str(transport.get("raw") or ""))
+        if parsed.get("ok"):
+            content = str(parsed.get("content") or "")
             if _trace_enabled():
                 _log("openai_chat_ok", trace_id=trace_id, content_len=len(content))
             _append_thread_event(
@@ -1416,25 +1278,24 @@ class PolyphoniaApi:
                 {"ok": True, "content": content, "trace_id": trace_id, "thread_id": thread_id, "key_id": key_id},
                 ensure_ascii=False,
             )
-        except (json.JSONDecodeError, IndexError, KeyError, TypeError) as e:
-            if _trace_enabled():
-                _log("openai_chat_bad_response", trace_id=trace_id, message=str(e))
-            _append_thread_event(key_id, thread_id, {"role": "user", "text": user_text, "trace_id": trace_id, "model": model})
-            _append_thread_event(
-                key_id,
-                thread_id,
-                {"role": "gpt_error", "text": str(e), "trace_id": trace_id, "error": "bad_response"},
-            )
-            return json.dumps(
-                {
-                    "ok": False,
-                    "error": "bad_response",
-                    "message": str(e),
-                    "trace_id": trace_id,
-                    "thread_id": thread_id,
-                    "key_id": key_id,
-                }
-            )
+        if _trace_enabled():
+            _log("openai_chat_bad_response", trace_id=trace_id, message=str(parsed.get("message") or ""))
+        _append_thread_event(key_id, thread_id, {"role": "user", "text": user_text, "trace_id": trace_id, "model": model})
+        _append_thread_event(
+            key_id,
+            thread_id,
+            {"role": "gpt_error", "text": str(parsed.get("message") or ""), "trace_id": trace_id, "error": "bad_response"},
+        )
+        return json.dumps(
+            {
+                "ok": False,
+                "error": "bad_response",
+                "message": str(parsed.get("message") or ""),
+                "trace_id": trace_id,
+                "thread_id": thread_id,
+                "key_id": key_id,
+            }
+        )
 
 
 if __name__ == "__main__":
