@@ -4,7 +4,6 @@ import sys
 import subprocess
 import shutil
 import hashlib
-import re
 import threading
 import time
 import urllib.error
@@ -16,6 +15,8 @@ from typing import Any
 
 import webview
 from polyphonia_runtime import musicxml_export
+from polyphonia_runtime import session_store
+from polyphonia_runtime import thread_store
 
 _SESSION_OPENAI_KEY: str | None = None
 _SESSION_CLAUDE_KEY: str | None = None
@@ -345,15 +346,11 @@ def _safe_bring_to_front(win: Any) -> None:
 
 
 def assist_dialogs_dir() -> Path:
-    d = Path(get_base()) / "polyphonia_sessions" / "dialogs"
-    d.mkdir(parents=True, exist_ok=True)
-    return d
+    return session_store.dialogs_dir(get_base())
 
 
 def assist_chats_dir() -> Path:
-    d = Path(get_base()) / "polyphonia_sessions" / "chats"
-    d.mkdir(parents=True, exist_ok=True)
-    return d
+    return session_store.chats_dir(get_base())
 
 
 def _assist_dialog_md_heading(role: str) -> str:
@@ -380,53 +377,19 @@ def _resolve_openai_key() -> str | None:
 
 
 def _persisted_auth_path() -> Path:
-    """
-    Location for optional "remember me" key storage.
-    Stored under gitignored polyphonia_sessions/ to keep secrets out of the repo.
-    """
-    d = Path(get_base()) / "polyphonia_sessions"
-    d.mkdir(parents=True, exist_ok=True)
-    return d / "auth.json"
+    return session_store.auth_path(get_base())
 
 
 def _load_persisted_auth() -> dict[str, Any]:
-    p = _persisted_auth_path()
-    if not p.exists():
-        return {}
-    try:
-        o = json.loads(p.read_text(encoding="utf-8"))
-        return o if isinstance(o, dict) else {}
-    except Exception:
-        return {}
+    return session_store.load_persisted_auth(get_base())
 
 
 def _save_persisted_auth(patch: dict[str, Any]) -> None:
-    p = _persisted_auth_path()
-    cur = _load_persisted_auth()
-    cur.update(patch)
-    # Normalize: drop empty strings
-    for k in ("openai_key", "claude_key"):
-        if k in cur and (cur.get(k) is None or str(cur.get(k) or "").strip() == ""):
-            cur.pop(k, None)
-    cur["v"] = 1
-    p.write_text(json.dumps(cur, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    session_store.save_persisted_auth(get_base(), patch)
 
 
 def _forget_persisted_auth(*, openai: bool = False, claude: bool = False) -> None:
-    cur = _load_persisted_auth()
-    if openai:
-        cur.pop("openai_key", None)
-    if claude:
-        cur.pop("claude_key", None)
-    if cur:
-        cur["v"] = int(cur.get("v") or 1)
-        _persisted_auth_path().write_text(json.dumps(cur, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        return
-    try:
-        _persisted_auth_path().unlink(missing_ok=True)
-    except Exception:
-        # Best-effort; don't crash app on permission issues.
-        pass
+    session_store.forget_persisted_auth(get_base(), openai=openai, claude=claude)
 
 
 def _bootstrap_session_keys_from_persisted_auth() -> None:
@@ -458,121 +421,41 @@ def _resolve_openai_key_id() -> str | None:
 
 
 def _sanitize_thread_id(raw: str | None) -> str:
-    v = (raw or "").strip().lower()
-    if not v:
-        return "default"
-    v = re.sub(r"[^a-z0-9._-]", "-", v)
-    v = re.sub(r"-{2,}", "-", v).strip("._-")
-    return v[:80] or "default"
+    return thread_store.sanitize_thread_id(raw)
 
 
 def _threads_root_for_key(key_id: str) -> Path:
-    key_dir = assist_chats_dir() / (key_id or "unknown")
-    key_dir.mkdir(parents=True, exist_ok=True)
-    return key_dir
+    return thread_store.threads_root(assist_chats_dir(), key_id)
 
 
 def _thread_file_for_key(key_id: str, thread_id: str) -> Path:
-    return _threads_root_for_key(key_id) / f"{_sanitize_thread_id(thread_id)}.jsonl"
+    return thread_store.thread_file(assist_chats_dir(), key_id, thread_id)
 
 
 def _append_thread_event(key_id: str, thread_id: str, event: dict[str, Any]) -> None:
-    p = _thread_file_for_key(key_id, thread_id)
-    row = dict(event)
-    row["thread_id"] = _sanitize_thread_id(thread_id)
-    row.setdefault("ts", datetime.now(timezone.utc).isoformat())
-    with p.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(row, ensure_ascii=False) + "\n")
+    thread_store.append_thread_event(assist_chats_dir(), key_id, thread_id, event)
 
 
 def _ensure_thread_file(key_id: str, thread_id: str, title: str = "") -> None:
-    p = _thread_file_for_key(key_id, thread_id)
-    if p.exists():
-        return
-    _append_thread_event(
-        key_id,
-        thread_id,
-        {
-            "kind": "thread_meta",
-            "role": "meta",
-            "title": (title or "").strip()[:140],
-        },
-    )
+    thread_store.ensure_thread_file(assist_chats_dir(), key_id, thread_id, title=title)
 
 
 def _load_thread_events(key_id: str, thread_id: str, limit: int = 500) -> list[dict[str, Any]]:
-    p = _thread_file_for_key(key_id, thread_id)
-    if not p.exists():
-        return []
-    rows: list[dict[str, Any]] = []
-    try:
-        lines = p.read_text(encoding="utf-8").splitlines()
-    except Exception:
-        return rows
-    tail = lines[-max(1, int(limit)) :] if lines else []
-    for line in tail:
-        s = (line or "").strip()
-        if not s:
-            continue
-        try:
-            o = json.loads(s)
-            if isinstance(o, dict):
-                rows.append(o)
-        except json.JSONDecodeError:
-            continue
-    return rows
+    return thread_store.load_thread_events(assist_chats_dir(), key_id, thread_id, limit=limit)
 
 
 def _list_threads_for_key(key_id: str) -> list[dict[str, Any]]:
-    out: list[dict[str, Any]] = []
-    root = _threads_root_for_key(key_id)
-    for p in sorted(root.glob("*.jsonl"), key=lambda x: x.stat().st_mtime, reverse=True):
-        thread_id = p.stem
-        title = ""
-        for row in _load_thread_events(key_id, thread_id, limit=80):
-            if str(row.get("kind") or "") == "thread_meta":
-                title = str(row.get("title") or "").strip()[:140]
-                if title:
-                    break
-            if str(row.get("role") or "") == "user":
-                t = str(row.get("text") or "").strip()
-                if t:
-                    title = t.replace("\n", " ")[:80]
-                    break
-        st = p.stat()
-        out.append(
-            {
-                "thread_id": thread_id,
-                "title": title,
-                "updated_ts": datetime.fromtimestamp(st.st_mtime, tz=timezone.utc).isoformat(),
-                "size_bytes": st.st_size,
-            }
-        )
-    return out
+    return thread_store.list_threads_for_key(assist_chats_dir(), key_id)
 
 
 def _thread_openai_messages(key_id: str, thread_id: str, max_messages: int = 32, max_chars: int = 22000) -> list[dict[str, str]]:
-    events = _load_thread_events(key_id, thread_id, limit=max(100, max_messages * 4))
-    filtered: list[dict[str, str]] = []
-    for e in events:
-        role = str(e.get("role") or "").strip().lower()
-        if role not in ("user", "assistant"):
-            continue
-        text = str(e.get("text") or "")
-        if not text.strip():
-            continue
-        filtered.append({"role": role, "content": text})
-    tail = filtered[-max_messages:] if filtered else []
-    kept: list[dict[str, str]] = []
-    total = 0
-    for msg in reversed(tail):
-        ln = len(msg["content"])
-        if kept and total + ln > max_chars:
-            break
-        kept.append(msg)
-        total += ln
-    kept.reverse()
-    return kept
+    return thread_store.thread_openai_messages(
+        assist_chats_dir(),
+        key_id,
+        thread_id,
+        max_messages=max_messages,
+        max_chars=max_chars,
+    )
 
 
 def _format_context_block(ctx: Any) -> str | None:
