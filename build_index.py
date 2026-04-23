@@ -110,16 +110,20 @@ def try_create_windows_desktop_shortcut(repo_root: Path) -> None:
     else:
         print("Written:", lnk, flush=True)
 
-with open(ROOT / "assets/_piano_html.txt", encoding="utf-8") as f:
-    piano_html = f.read()
+def build_index_html(repo_root: Path) -> str:
+    """
+    Собрать содержимое `index.html` как строку, без записи на диск.
 
-with open(ROOT / "guitar_template.html", encoding="utf-8") as f:
-    guitar_html = f.read()
+    Важно: функция чистая по побочным эффектам (кроме чтения входных файлов),
+    чтобы её можно было тестировать.
+    """
+    piano_html = (repo_root / "assets/_piano_html.txt").read_text(encoding="utf-8")
+    guitar_html = (repo_root / "guitar_template.html").read_text(encoding="utf-8")
 
-note_sel = re.search(r'<select[^>]*id="note"[^>]*>.*?</select>', guitar_html, re.DOTALL).group(0)
-scale_sel = re.search(r'<select[^>]*id="scale"[^>]*>.*?</select>', guitar_html, re.DOTALL).group(0)
+    note_sel = re.search(r'<select[^>]*id="note"[^>]*>.*?</select>', guitar_html, re.DOTALL).group(0)
+    scale_sel = re.search(r'<select[^>]*id="scale"[^>]*>.*?</select>', guitar_html, re.DOTALL).group(0)
 
-html = (
+    html = (
 '<!DOCTYPE html>\n'
 '<html lang="en" class="dark_mode">\n'
 '<head>\n'
@@ -918,12 +922,20 @@ html = (
 '</body>\n'
 '</html>\n'
 )
+    return html
 
-with open(ROOT / "index.html", "w", encoding="utf-8") as f:
-    f.write(html)
-print('Written index.html:', len(html), 'bytes')
 
-try_write_polyphonia_ico(ROOT)
-write_polyphonia_launchers(ROOT)
-print("Written run_polyphonia.bat, run_polyphonia.ps1", flush=True)
-try_create_windows_desktop_shortcut(ROOT)
+def main() -> int:
+    html = build_index_html(ROOT)
+    (ROOT / "index.html").write_text(html, encoding="utf-8")
+    print("Written index.html:", len(html), "bytes", flush=True)
+
+    try_write_polyphonia_ico(ROOT)
+    write_polyphonia_launchers(ROOT)
+    print("Written run_polyphonia.bat, run_polyphonia.ps1", flush=True)
+    try_create_windows_desktop_shortcut(ROOT)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -43,3 +43,12 @@ def test_banner_only_no_color_tty_safe() -> None:
     assert cp.returncode == 0
     combined = (cp.stdout or "") + (cp.stderr or "")
     assert "\033[" not in combined
+
+
+def test_banner_lines_api_smoke() -> None:
+    import scripts.claude_terminal as ct
+
+    root = ct._find_repo_root()
+    lines = ct._banner_lines(root, width=72, color=False)
+    assert any("PETS" in ln for ln in lines)
+    assert any("exec:" in ln for ln in lines)

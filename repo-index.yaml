@@ -369,6 +369,11 @@ entries:
     status: authoritative
     role: dev-note
     description: Usage and safety notes for scripts/repo_admin_cli.py admin-mode shell runner.
+  - path: docs/dev-notes/agent-error-log.md
+    layer: canonical
+    status: authoritative
+    role: dev-note
+    description: Daily error/retro log for the coding agent (mistakes, fixes, prevention).
   - path: scripts/sync_docs.py
     layer: adapter
     status: authoritative-helper
@@ -760,6 +765,17 @@ entries:
     status: authoritative
     role: offline-scales-e2e
     description: Atomic Playwright tests for offline scale info, fretboard, and chord table.
+
+  - path: tests/test_build_index.py
+    layer: canonical
+    status: authoritative
+    role: tests
+    description: Unit tests for build_index.py (HTML build and launcher outputs).
+  - path: tests/test_change_gate_index_parsing.py
+    layer: canonical
+    status: authoritative
+    role: tests
+    description: Unit tests for scripts/check_change_gate.py index parsing (multiline paths).
 
   - path: scripts/check_change_gate.py
     layer: adapter
