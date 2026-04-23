@@ -114,6 +114,8 @@ html.dark_mode .scale_chord_tr>td>button:disabled{
 .assist_openai_block{margin-top:12px;padding-top:10px;border-top:1px solid #374151}
 .assist_compose{display:flex;gap:10px;align-items:stretch;margin-top:10px}
 .assist_compose textarea{flex:1;min-height:74px}
+.assist_send_col{display:flex;flex-direction:column;align-items:stretch;gap:6px}
+.assist_mode_badge{font-size:11px;color:#a5b4fc;text-align:center;user-select:none}
 .assist_send_btn{min-width:116px;padding:10px 12px;border-radius:10px;border:1px solid #4f46e5;background:linear-gradient(90deg,#4f46e5,#0d9488);color:#fff;font-weight:800;cursor:pointer}
 .assist_send_btn:disabled{opacity:.45;cursor:not-allowed}
 .assist_mode_row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
@@ -121,6 +123,13 @@ html.dark_mode .scale_chord_tr>td>button:disabled{
 .assist_seg_btn{padding:8px 10px;background:#0b0f18;color:#e5e7eb;border:none;cursor:pointer;font-weight:700;font-size:12px}
 .assist_seg_btn.selected{background:#312e81;color:#eef2ff}
 .assist_mode_cb{font-size:12px;color:#d1d5db;user-select:none}
+.assist_goal_row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}
+.assist_goal_row label{font-size:12px;color:#d1d5db}
+.assist_goal_row select{flex:1;max-width:260px}
+.assist_thread_row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.assist_thread_row select{flex:1;min-width:140px}
+.assist_thread_row button{white-space:nowrap}
+#assist_thread_hint{min-height:14px;color:#93c5fd;font-size:11px;margin-bottom:8px}
 .assist_more{margin-top:10px}
 .assist_more>summary{cursor:pointer;color:#c4b5fd;font-size:12px;font-weight:700}
 .assist_openai_title{font-size:12px;font-weight:700;color:#c4b5fd;margin-bottom:6px}
@@ -136,6 +145,9 @@ html.dark_mode .scale_chord_tr>td>button:disabled{
 #stringed_display.poly_fret_boxes #fret_note_con>.note_con[id^="f_"].poly_fb_alt1{background:rgba(99,102,241,.08)}
 #stringed_display.poly_fret_boxes #frets_con>.fret_con[id^="fret_"].poly_fb_alt1{background:rgba(99,102,241,.06)}
 #poly_fret_box_select:disabled{opacity:.45;cursor:not-allowed}
+#stringed_display.poly_split_2bands{padding-bottom:26px}
+#stringed_display.poly_split_2bands .poly_split_lower{transform:translateY(22px)}
+#stringed_display.poly_split_2bands #fret_wood{height:calc(100% + 22px)}
 html.poly_mode_offline #poly_assist_btn{display:none!important}
 html.poly_mode_offline #assist_openai_block{display:none!important}
 .settings_backdrop{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.55);display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;overflow:auto}
@@ -198,10 +210,12 @@ html.poly_mode_offline #assist_openai_block{display:none!important}
     <option value="poly_layout_wide">3 колонки</option>
   </select>
   <label class="poly_bar_lbl" for="poly_fret_box_select">Гриф</label>
-  <select id="poly_fret_box_select" class="poly_bar_sel" title="Группы ладов для гамм: 3 по горизонтали или 3+2">
+  <select id="poly_fret_box_select" class="poly_bar_sel" title="Группы ладов: обычные или split-режим на 2 полосы">
     <option value="fret_box_off">Без боксов</option>
     <option value="fret_box_3">Боксы по 3 лада</option>
     <option value="fret_box_32">Боксы 3+2 лада</option>
+    <option value="fret_box_split_3">Split 2 полосы + боксы 3</option>
+    <option value="fret_box_split_32">Split 2 полосы + боксы 3+2</option>
   </select>
   <button type="button" id="poly_fs_btn" class="poly_bar_btn">Fullscreen</button>
 </div>
@@ -314,10 +328,18 @@ html.poly_mode_offline #assist_openai_block{display:none!important}
     </div>
   </div>
   <div class="assist_disclaimer">Чат в стиле ChatGPT: история → ввод → отправка. По умолчанию работает офлайн-черновик. Для GPT нужен запуск через pywebview и ключ OpenAI (env или сессия). Ответы не являются истиной грифа.</div>
+  <div class="assist_thread_row">
+    <select id="assist_thread_select" aria-label="Треды чата"></select>
+    <button type="button" id="assist_thread_new" class="assist_inline_btn" style="margin:0">Новый чат</button>
+  </div>
+  <div id="assist_thread_hint"></div>
   <div id="assist_messages"></div>
   <div class="assist_compose">
     <textarea id="assist_input" rows="3" placeholder="Напр.: «рифф в духе…», «как обыграть этот лад», или вставьте черновик / JSON…"></textarea>
-    <button type="button" id="assist_send" class="assist_send_btn">Отправить</button>
+    <div class="assist_send_col">
+      <button type="button" id="assist_send" class="assist_send_btn">Отправить</button>
+      <div id="assist_mode_badge" class="assist_mode_badge">Mode: Auto</div>
+    </div>
   </div>
   <div class="assist_mode_row">
     <div class="assist_mode_seg" role="group" aria-label="Режим отправки">
@@ -326,10 +348,23 @@ html.poly_mode_offline #assist_openai_block{display:none!important}
     </div>
     <label class="assist_mode_cb"><input type="checkbox" id="assist_openai_ctx" checked /> Контекст</label>
   </div>
+  <div class="assist_goal_row">
+    <label for="assist_goal_mode">Режим ассистента</label>
+    <select id="assist_goal_mode">
+      <option value="auto">Auto</option>
+      <option value="compose">Composer</option>
+      <option value="theory">Theory</option>
+      <option value="production">Production</option>
+      <option value="practice">Practice</option>
+      <option value="analysis">Analyze</option>
+    </select>
+  </div>
   <details class="assist_more">
     <summary>Дополнительно</summary>
     <div class="assist_actions" style="margin-top:10px">
       <button type="button" id="assist_copy_ctx">Копировать контекст JSON</button>
+      <button type="button" id="assist_copy_last">Копировать последний ответ</button>
+      <button type="button" id="assist_copy_chat">Копировать весь чат</button>
       <button type="button" id="assist_musicxml">MusicXML снимок</button>
     </div>
     <div id="assist_openai_block" class="assist_openai_block">

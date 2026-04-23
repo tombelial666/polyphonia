@@ -134,6 +134,36 @@ def print_banner() -> None:
     sys.stderr.flush()
 
 
+def resolve_claude_executable() -> str | None:
+    """Resolve Claude CLI path even when PATH is incomplete on Windows."""
+    exe = shutil.which("claude")
+    if exe:
+        return exe
+    candidates: list[Path] = []
+    appdata = (os.environ.get("APPDATA") or "").strip()
+    localapp = (os.environ.get("LOCALAPPDATA") or "").strip()
+    userprof = (os.environ.get("USERPROFILE") or "").strip()
+    npm_prefix = (os.environ.get("npm_config_prefix") or "").strip()
+    if appdata:
+        candidates.append(Path(appdata) / "npm" / "claude.cmd")
+    if localapp:
+        candidates.append(Path(localapp) / "Programs" / "Claude" / "claude.exe")
+    if userprof:
+        up = Path(userprof)
+        candidates.append(up / "scoop" / "shims" / "claude.cmd")
+        candidates.append(up / ".local" / "bin" / "claude")
+    if npm_prefix:
+        candidates.append(Path(npm_prefix) / "claude.cmd")
+        candidates.append(Path(npm_prefix) / "claude")
+    for p in candidates:
+        try:
+            if p.is_file():
+                return str(p)
+        except Exception:
+            continue
+    return None
+
+
 def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
     if args and args[0] == "--banner-only":
@@ -141,7 +171,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     print_banner()
-    exe = shutil.which("claude")
+    exe = resolve_claude_executable()
     if not exe:
         red, rst = ("\033[31m", "\033[0m") if _use_color() else ("", "")
         sys.stderr.write(f"{red}error:{rst} executable `claude` not found on PATH.\n")

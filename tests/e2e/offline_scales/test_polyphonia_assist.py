@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 
 import pytest
@@ -86,7 +87,24 @@ def test_assist_send_gpt_calls_openai_chat(scales_app: ScalesApp) -> None:
     page.wait_for_timeout(200)
     calls = page.evaluate("() => window.__openai_calls")
     assert len(calls) == 1
-    assert '"user_text"' in calls[0]
+    payload = json.loads(calls[0])
+    assert payload.get("user_text") == "hello gpt"
+    assert payload.get("thread_id")
+    assert payload.get("goal_mode") == "auto"
+    assert isinstance(payload.get("context_json"), dict)
+    assert isinstance(payload["context_json"].get("scaleContext"), dict)
+
+
+@pytest.mark.e2e
+def test_assist_transcript_restores_after_reload(scales_app: ScalesApp) -> None:
+    page = scales_app.page
+    page.locator("#poly_assist_btn").click()
+    page.locator("#assist_input").fill("persist transcript")
+    page.locator("#assist_send").click()
+    expect(page.locator("#assist_messages")).to_contain_text("persist transcript")
+    page.reload()
+    page.locator("#poly_assist_btn").click()
+    expect(page.locator("#assist_messages")).to_contain_text("persist transcript")
 
 @pytest.mark.e2e
 def test_polyphonia_assist_panel_and_bridge(scales_app: ScalesApp) -> None:
@@ -119,6 +137,40 @@ def test_polyphonia_fret_boxes_three_frets(scales_app: ScalesApp) -> None:
     expect(disp).to_have_class(re.compile(r"\bpoly_fret_boxes\b"))
     expect(page.locator("#f_0")).to_have_class(re.compile(r"\bpoly_fb_start\b"))
     expect(page.locator("#f_3")).to_have_class(re.compile(r"\bpoly_fb_start\b"))
+
+
+@pytest.mark.e2e
+def test_polyphonia_fret_boxes_split_two_bands(scales_app: ScalesApp) -> None:
+    page = scales_app.page
+    scales_app.select_guitar_scale("d", "major")
+    page.locator("#poly_fret_box_select").select_option("fret_box_split_3")
+    disp = page.locator("#stringed_display")
+    expect(disp).to_have_class(re.compile(r"\bpoly_split_2bands\b"))
+    lower_count = page.locator("#stringed_display .poly_split_lower").count()
+    assert lower_count > 0
+
+
+@pytest.mark.e2e
+def test_polyphonia_zoom_shortcuts(scales_app: ScalesApp) -> None:
+    page = scales_app.page
+    before = page.evaluate("() => getComputedStyle(document.documentElement).zoom || document.documentElement.style.zoom || '1'")
+    page.keyboard.press("Control+=")
+    after_plus = page.evaluate("() => getComputedStyle(document.documentElement).zoom || document.documentElement.style.zoom || '1'")
+    page.keyboard.press("Control+0")
+    after_reset = page.evaluate("() => getComputedStyle(document.documentElement).zoom || document.documentElement.style.zoom || '1'")
+    assert str(after_plus) != str(before)
+    assert str(after_reset) in ("1", "1.0", "100%")
+
+
+@pytest.mark.e2e
+def test_assist_copy_chat_actions(scales_app: ScalesApp) -> None:
+    page = scales_app.page
+    page.locator("#poly_assist_btn").click()
+    page.locator("#assist_input").fill("copy me")
+    page.locator("#assist_send").click()
+    page.locator("#assist_panel .assist_more > summary").click()
+    page.locator("#assist_copy_chat").click()
+    expect(page.locator("#assist_messages")).to_contain_text("copy me")
 
 
 @pytest.mark.e2e
