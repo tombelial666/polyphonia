@@ -16,16 +16,20 @@ This file maps the non-core legacy layers that sit beside the active PETS runtim
 
 ## Build Layer
 
-### `build/ChordRocks/`
+### `build/polyphonia/`
 
 | Path | Status | Description |
 |---|---|---|
-| `build/ChordRocks/Analysis-00.toc` | generated | PyInstaller analysis table for the active `ChordRocks` packaging path |
-| `build/ChordRocks/EXE-00.toc` | generated | PyInstaller executable table |
-| `build/ChordRocks/PKG-00.toc` | generated | PyInstaller package table |
-| `build/ChordRocks/PYZ-00.toc` | generated | PyInstaller Python archive table |
-| `build/ChordRocks/warn-ChordRocks.txt` | generated diagnostic | Packaging warnings for the active packaging path |
-| `build/ChordRocks/xref-ChordRocks.html` | generated diagnostic | Cross-reference report created by PyInstaller |
+| `build/polyphonia/Analysis-00.toc` | generated | PyInstaller analysis table for `polyphonia.spec` |
+| `build/polyphonia/EXE-00.toc` | generated | PyInstaller executable table |
+| `build/polyphonia/PKG-00.toc` | generated | PyInstaller package table |
+| `build/polyphonia/PYZ-00.toc` | generated | PyInstaller Python archive table |
+| `build/polyphonia/warn-polyphonia.txt` | generated diagnostic | Packaging warnings for the active packaging path |
+| `build/polyphonia/xref-polyphonia.html` | generated diagnostic | Cross-reference report created by PyInstaller |
+
+### `build/ChordRocks/` (legacy cache)
+
+If this directory still exists locally, it came from older PyInstaller runs when the spec file was named `ChordRocks.spec`. It is not part of the current authoritative packaging path and can be deleted.
 
 ### `build/A Phrygian Dominant/`
 
@@ -40,7 +44,7 @@ This file maps the non-core legacy layers that sit beside the active PETS runtim
 
 ### Build-Layer Interpretation
 
-- `build/ChordRocks/` belongs to the active packaging path.
+- `build/polyphonia/` belongs to the active packaging path (`polyphonia.spec`).
 - `build/A Phrygian Dominant/` belongs to an older or alternative packaging attempt.
 - none of these files are authoritative source files.
 
@@ -161,4 +165,4 @@ The following families exist inside `A Phrygian Dominant_files/` and duplicate a
 
 - treat `build/` and `dist/` as disposable packaging layers
 - treat `A Phrygian Dominant*` as reference-only legacy residue
-- treat `assets/`, `build_index.py`, `index.html`, `phrygian_app.py`, and `ChordRocks.spec` as the current runtime-relevant path
+- treat `assets/`, `build_index.py`, `index.html`, `phrygian_app.py`, and `polyphonia.spec` as the current runtime-relevant path

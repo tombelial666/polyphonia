@@ -4,11 +4,11 @@ PETS is a local guitar and scale reference project built around a static web UI 
 
 ## Current State
 
-- Runtime shell: `pywebview` via `phrygian_app.py`
+- Runtime shell: `pywebview` via `phrygian_app.py` (при обычном запуске — окно ONLINE/OFFLINE и опционально ключи OpenAI/Claude; `.bat` без своей иконки, иконка у ярлыка на рабочем столе)
 - Main generated UI: `index.html`
 - Source data and static assets: `assets/`
-- HTML assembly script: `build_index.py`
-- Packaging path: `ChordRocks.spec`
+- HTML assembly script: `build_index.py` (после запуска в корне появляются `run_polyphonia.bat` / `run_polyphonia.ps1`; на Windows — ярлык **Polyphonia** на рабочем столе)
+- Packaging path: `polyphonia.spec` (собирает исполняемый файл **Polyphonia** / `polyphonia.exe`; репозиторий по-прежнему **PETS**)
 
 ## Source Of Truth
 

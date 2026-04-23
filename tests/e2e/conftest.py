@@ -24,7 +24,8 @@ def index_html_uri(pets_root: Path) -> str:
         cwd=pets_root,
         check=True,
     )
-    return pets_root.joinpath("index.html").resolve().as_uri()
+    base = pets_root.joinpath("index.html").resolve().as_uri()
+    return base + "#poly_mode=assist"
 
 
 @pytest.fixture(scope="session")

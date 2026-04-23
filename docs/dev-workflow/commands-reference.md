@@ -82,3 +82,72 @@ The adapter layer can expose focused helper commands for common music tasks:
 6. Make the smallest useful change
 7. Review output and update docs if needed
 8. Sync adapter layers if `.cursor/` or `AGENTS.md` changed
+
+## Polyphonia и репозиторий — шпаргалка терминала
+
+Оформлено как краткий **runbook**: одна страница, без дублирования длинных спеков (детали — в `docs/dev-notes/repo-admin-cli.md` и `docs/dev-notes/openai-assist-bridge.md`).
+
+> **Безопасность:** реальные ключи и токены не вставляй в чаты и не коммить. Ниже — только плейсхолдеры; значения задаёшь локально в своей сессии PowerShell.
+
+### Переменные окружения (по необходимости)
+
+| Переменная | Назначение |
+|------------|------------|
+| `PETS_OPERATOR_TOKEN` | Непустая строка — «операторский» пропуск для `scripts/repo_admin_cli.py` (только из **корня** репозитория) |
+| `OPENAI_API_KEY` | Доступ к GPT из Assist в режиме **`assist`** (серверный вызов из `phrygian_app.py`) |
+| `POLYPHONIA_MODE` | `offline` или `assist` — пропуск интерактивного вопроса при запуске `python phrygian_app.py` |
+| `OPENAI_MODEL` | Необязательно; иначе мост использует модель по умолчанию из кода |
+| `POLYPHONIA_TRACE` | `1` включает расширенную трассировку запросов GPT: correlation id и цепочку UI → Python → HTTP → UI в консольных логах |
+
+### Сборка UI, тесты, запуск оболочки
+
+```powershell
+Set-Location D:\Reps\PETS   # свой путь к клону
+
+$env:PETS_OPERATOR_TOKEN = "<секрет>"
+$env:POLYPHONIA_MODE = "assist"
+# $env:OPENAI_API_KEY = "sk-..."
+
+python build_index.py
+# после этого: run_polyphonia.bat / run_polyphonia.ps1 в корне; на Windows — ярлык Polyphonia.lnk на рабочем столе
+python -m pytest --tb=short
+python phrygian_app.py
+```
+
+При запуске `phrygian_app.py` **без** заданного `POLYPHONIA_MODE` и **с** интерактивной консолью появится вопрос: **1** — офлайн (без Assist/GPT), **2** — с ассистентами. Без TTY по умолчанию выбирается офлайн.
+
+### Только `index.html` в браузере
+
+Путь `file:///.../index.html` без параметров в приложении даёт режим **офлайн** в JS. Чтобы открыть интерфейс с Assist, добавь в URL: **`#poly_mode=assist`** (так же сделано в E2E). В окне **phrygian_app.py** режим **офлайн / assist** можно сменить в **«Настройки»** (без перезапуска процесса); новый холодный старт снова из `POLYPHONIA_MODE` / меню.
+
+Опциональный лог диалога Assist в Markdown: кнопка **Настройки** → чекбокс; файлы в **`polyphonia_sessions/dialogs/`** (см. `docs/dev-notes/openai-assist-bridge.md`).
+
+Сводка «логина» GPT/Claude и варианты развития UX: **`docs/dev-notes/assist-llm-login-ux.md`**.
+
+### Claude Code — «навороченный» терминал (баннер + `exec`)
+
+Из корня репозитория: сначала цветной баннер (рамка, ветка git), затем запуск настоящего **`claude`** из PATH без лишней оболочки.
+
+```powershell
+Set-Location D:\Reps\PETS
+python scripts/claude_terminal.py
+python scripts/claude_terminal.py chat
+python scripts/claude_terminal.py --banner-only
+```
+
+Подробности: `docs/dev-notes/claude-terminal-launcher.md`. Без цветов: `$env:NO_COLOR = "1"`.
+
+### Admin CLI (одна команда из корня)
+
+```powershell
+Set-Location D:\Reps\PETS
+$env:PETS_OPERATOR_TOKEN = "<секрет>"
+python scripts/repo_admin_cli.py -- git status
+```
+
+## QA change gate
+
+- Canonical procedure: `docs/dev-workflow/qa-change-gate.md`
+- Cursor command helper: `.cursor/commands/qa-change-gate.md`
+- Reviewer agent: `qa-change-gate-reviewer`
+- GitHub Actions: `.github/workflows/ci.yml` (change gate + E2E)

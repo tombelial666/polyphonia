@@ -1,18 +1,170 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark_mode">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width">
-<title>Chord.Rocks - Offline</title>
+<meta name="theme-color" content="#0b0d12">
+<title>Polyphonia — scales & chords</title>
 <link rel="stylesheet" href="assets/styles.min.css">
 <link rel="stylesheet" href="assets/instrument_stringed.min.css">
 <link rel="stylesheet" href="assets/instrument_options.min.css">
 <link rel="stylesheet" href="assets/scales_info.min.css">
 <link id="instrument_css" rel="stylesheet" href="assets/instrument_guitar.min.css">
 <style>
-#app_bar{background:#2c3e50;padding:8px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-#app_bar label{color:#aaa;font-size:13px;white-space:nowrap}
-#app_instrument_select{padding:5px 10px;font-size:14px;border-radius:4px;border:none;background:#ecf0f1}
+:root{--pets-border:#3d4454;--pets-panel:rgba(22,26,36,.94);--pets-muted:#9ca3af}
+html.dark_mode,html.dark_mode body{min-height:100%;color-scheme:dark}
+html.dark_mode body{
+  margin:0;
+  color:#e8eaef;
+  background-color:#0b0d12;
+  background-image:linear-gradient(165deg,rgba(11,13,18,.94) 0%,rgba(11,13,18,.72) 45%,rgba(17,24,39,.88) 100%),url(assets/pets-bg.png);
+  background-size:auto,cover;
+  background-position:0 0,center top;
+  background-repeat:no-repeat,no-repeat;
+  background-attachment:fixed,fixed;
+}
+#page_content_con{max-width:1200px}
+#app_bar{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:10px 18px;
+  background:rgba(15,18,26,.78);
+  backdrop-filter:saturate(140%) blur(14px);
+  -webkit-backdrop-filter:saturate(140%) blur(14px);
+  border-bottom:1px solid var(--pets-border);
+  box-shadow:0 4px 24px rgba(0,0,0,.35);
+}
+#app_bar label{color:var(--pets-muted);font-size:13px;white-space:nowrap}
+.pets-wordmark{
+  font-family:Segoe UI,Tahoma,system-ui,sans-serif;font-weight:800;font-size:1.05rem;
+  letter-spacing:.08em;color:#f4f4f5;
+  text-shadow:0 0 28px rgba(167,139,250,.45);
+  user-select:none;
+}
+#app_instrument_select{
+  padding:6px 12px;font-size:14px;border-radius:6px;
+  border:1px solid var(--pets-border);
+  background:#1f2937;color:#e5e7eb;
+}
+html.dark_mode .info_con{
+  background:var(--pets-panel)!important;
+  border:1px solid var(--pets-border)!important;
+  border-radius:8px;
+  box-shadow:0 8px 32px rgba(0,0,0,.25);
+}
+html.dark_mode .info_con>.header{color:#c4b5fd;font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+html.dark_mode h2{color:#f9fafb}
+html.dark_mode #scale_chord_table{border-color:var(--pets-border)!important}
+html.dark_mode .scale_chord_tr>td>button{
+  color:#ede9fe!important;
+  background:linear-gradient(180deg,#4c1d95,#3730a3)!important;
+  border:1px solid #7c3aed!important;
+}
+html.dark_mode .scale_chord_tr>td>button.selected{
+  color:#fff!important;background:#6d28d9!important;border-color:#a78bfa!important;
+}
+html.dark_mode .scale_chord_tr>td>button:disabled{
+  color:#6b7280!important;background:#111827!important;border-color:#374151!important;
+}
+@media (hover:hover){
+  html.dark_mode .scale_chord_tr>td>button:hover{
+    color:#fff!important;background:#5b21b6!important;
+  }
+}
+.poly_bar_btn,.poly_bar_sel{padding:6px 10px;font-size:13px;border-radius:6px;border:1px solid var(--pets-border);background:#111827;color:#e5e7eb;cursor:pointer}
+.poly_bar_lbl{color:var(--pets-muted);font-size:13px;margin-left:6px}
+#poly_grid{display:flex;flex-direction:column;gap:16px;margin-top:8px}
+#poly_grid.poly_layout_wide{display:grid;grid-template-columns:minmax(240px,280px) minmax(0,1fr) minmax(280px,360px);grid-template-areas:"opts board side";gap:18px;align-items:start}
+#poly_grid.poly_layout_wide .poly_cell_options{grid-area:opts}
+#poly_grid.poly_layout_wide .poly_cell_board{grid-area:board}
+#poly_grid.poly_layout_wide .poly_cell_side{grid-area:side}
+@media (max-width:1040px){#poly_grid.poly_layout_wide{grid-template-columns:1fr;grid-template-areas:"opts" "board" "side"}}
+.poly_string_vis_grid{display:flex;flex-wrap:wrap;gap:6px 10px;max-width:520px}
+.poly_str_lab{font-size:12px;color:#d1d5db}
+#stringed_display.poly_hide_s0 .s_0,#stringed_display.poly_hide_s0 #string_label_0,#stringed_display.poly_hide_s0 #string_0{display:none!important}
+#stringed_display.poly_hide_s1 .s_1,#stringed_display.poly_hide_s1 #string_label_1,#stringed_display.poly_hide_s1 #string_1{display:none!important}
+#stringed_display.poly_hide_s2 .s_2,#stringed_display.poly_hide_s2 #string_label_2,#stringed_display.poly_hide_s2 #string_2{display:none!important}
+#stringed_display.poly_hide_s3 .s_3,#stringed_display.poly_hide_s3 #string_label_3,#stringed_display.poly_hide_s3 #string_3{display:none!important}
+#stringed_display.poly_hide_s4 .s_4,#stringed_display.poly_hide_s4 #string_label_4,#stringed_display.poly_hide_s4 #string_4{display:none!important}
+#stringed_display.poly_hide_s5 .s_5,#stringed_display.poly_hide_s5 #string_label_5,#stringed_display.poly_hide_s5 #string_5{display:none!important}
+#stringed_display.poly_hide_s6 .s_6,#stringed_display.poly_hide_s6 #string_label_6,#stringed_display.poly_hide_s6 #string_6{display:none!important}
+#stringed_display.poly_hide_s7 .s_7,#stringed_display.poly_hide_s7 #string_label_7,#stringed_display.poly_hide_s7 #string_7{display:none!important}
+#stringed_display.poly_hide_s8 .s_8,#stringed_display.poly_hide_s8 #string_label_8,#stringed_display.poly_hide_s8 #string_8{display:none!important}
+#stringed_display.poly_hide_s9 .s_9,#stringed_display.poly_hide_s9 #string_label_9,#stringed_display.poly_hide_s9 #string_9{display:none!important}
+#stringed_display.poly_hide_s10 .s_10,#stringed_display.poly_hide_s10 #string_label_10,#stringed_display.poly_hide_s10 #string_10{display:none!important}
+#stringed_display.poly_hide_s11 .s_11,#stringed_display.poly_hide_s11 #string_label_11,#stringed_display.poly_hide_s11 #string_11{display:none!important}
+#fret_note_con .sf{position:relative}
+.finger_hint{position:absolute;bottom:1px;right:1px;font-size:10px;line-height:1;color:#fbbf24;font-weight:700;pointer-events:none;text-shadow:0 0 4px #000}
+.assist_panel{position:fixed;z-index:80;right:14px;bottom:14px;width:min(440px,94vw);max-height:72vh;overflow:auto;background:rgba(17,24,39,.96);border:1px solid var(--pets-border);border-radius:10px;box-shadow:0 12px 40px rgba(0,0,0,.45);padding:12px 14px}
+.poly_view_assist body{overflow:hidden}
+.poly_view_assist #poly_grid,.poly_view_assist #app_bar,.poly_view_assist #settings_backdrop{display:none!important}
+.poly_view_assist .assist_panel{position:static!important;right:auto!important;bottom:auto!important;width:auto!important;max-height:none!important;height:100vh!important;border-radius:0!important;box-shadow:none!important}
+.assist_head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.assist_head h3{margin:0;font-size:15px;color:#e5e7eb}
+.assist_disclaimer{font-size:11px;color:var(--pets-muted);margin-bottom:8px;line-height:1.35}
+#assist_messages{min-height:80px;max-height:220px;overflow:auto;border:1px solid #374151;border-radius:6px;padding:8px;margin-bottom:8px;background:#0b0f18}
+.assist_msg{margin:6px 0;padding:6px 8px;border-radius:6px;font-size:13px;white-space:pre-wrap;word-break:break-word}
+.assist_msg_user{background:#312e81;color:#eef2ff;border:1px solid #6366f1}
+.assist_msg_sys{background:#111827;color:#e5e7eb;border:1px solid #374151}
+.assist_msg_gpt{background:#0c1a14;color:#d1fae5;border:1px solid #059669}
+.assist_msg_gpt_error{background:#1c1410;color:#fed7aa;border:1px solid #d97706}
+.assist_inline_btn{margin-top:6px;padding:4px 8px;font-size:12px;border-radius:4px;border:1px solid #6366f1;background:#3730a3;color:#fff;cursor:pointer}
+#assist_input{width:100%;box-sizing:border-box;border-radius:6px;border:1px solid #374151;background:#0b0f18;color:#e5e7eb;padding:8px}
+.assist_actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.assist_actions button{padding:6px 10px;font-size:12px;border-radius:6px;border:1px solid var(--pets-border);background:#1f2937;color:#e5e7eb;cursor:pointer}
+.assist_openai_block{margin-top:12px;padding-top:10px;border-top:1px solid #374151}
+.assist_compose{display:flex;gap:10px;align-items:stretch;margin-top:10px}
+.assist_compose textarea{flex:1;min-height:74px}
+.assist_send_btn{min-width:116px;padding:10px 12px;border-radius:10px;border:1px solid #4f46e5;background:linear-gradient(90deg,#4f46e5,#0d9488);color:#fff;font-weight:800;cursor:pointer}
+.assist_send_btn:disabled{opacity:.45;cursor:not-allowed}
+.assist_mode_row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
+.assist_mode_seg{display:flex;gap:0;border:1px solid #374151;border-radius:10px;overflow:hidden}
+.assist_seg_btn{padding:8px 10px;background:#0b0f18;color:#e5e7eb;border:none;cursor:pointer;font-weight:700;font-size:12px}
+.assist_seg_btn.selected{background:#312e81;color:#eef2ff}
+.assist_mode_cb{font-size:12px;color:#d1d5db;user-select:none}
+.assist_more{margin-top:10px}
+.assist_more>summary{cursor:pointer;color:#c4b5fd;font-size:12px;font-weight:700}
+.assist_openai_title{font-size:12px;font-weight:700;color:#c4b5fd;margin-bottom:6px}
+.assist_small{font-size:11px;color:var(--pets-muted);line-height:1.35;margin-bottom:8px}
+.assist_openai_block input[type=password]{width:100%;box-sizing:border-box;margin:6px 0;padding:6px 8px;border-radius:6px;border:1px solid #374151;background:#0b0f18;color:#e5e7eb}
+.assist_openai_block label{font-size:12px;color:#d1d5db;display:block;margin:6px 0}
+.assist_openai_row{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+#assist_pending{margin-top:10px;padding:8px;border:1px solid #92400e;border-radius:6px;background:rgba(120,53,15,.25)}
+#stringed_display.poly_fret_boxes #fret_note_con>.note_con[id^="f_"].poly_fb_start,
+#stringed_display.poly_fret_boxes #frets_con>.fret_con[id^="fret_"].poly_fb_start{box-shadow:inset 3px 0 0 rgba(167,139,250,.85)}
+#stringed_display.poly_fret_boxes.is_lefty #fret_note_con>.note_con[id^="f_"].poly_fb_start,
+#stringed_display.poly_fret_boxes.is_lefty #frets_con>.fret_con[id^="fret_"].poly_fb_start{box-shadow:inset -3px 0 0 rgba(167,139,250,.85)}
+#stringed_display.poly_fret_boxes #fret_note_con>.note_con[id^="f_"].poly_fb_alt1{background:rgba(99,102,241,.08)}
+#stringed_display.poly_fret_boxes #frets_con>.fret_con[id^="fret_"].poly_fb_alt1{background:rgba(99,102,241,.06)}
+#poly_fret_box_select:disabled{opacity:.45;cursor:not-allowed}
+html.poly_mode_offline #poly_assist_btn{display:none!important}
+html.poly_mode_offline #assist_openai_block{display:none!important}
+.settings_backdrop{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.55);display:flex;align-items:flex-start;justify-content:center;padding:24px 12px;overflow:auto}
+.settings_backdrop.hidden{display:none!important}
+.settings_card{margin-top:8vh;max-width:480px;width:100%;background:rgba(17,24,39,.98);border:1px solid var(--pets-border);border-radius:10px;box-shadow:0 16px 48px rgba(0,0,0,.5);padding:14px 16px 18px}
+.settings_head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.settings_head h3{margin:0;font-size:16px;color:#e5e7eb}
+.settings_head button{padding:4px 10px;font-size:12px;border-radius:6px;border:1px solid var(--pets-border);background:#1f2937;color:#e5e7eb;cursor:pointer}
+.settings_row{font-size:13px;color:#e5e7eb;line-height:1.45;margin:8px 0}
+.settings_hint{font-size:12px;color:var(--pets-muted);line-height:1.4;margin:0 0 12px}
+.settings_cb{display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-size:13px;color:#d1d5db}
+.settings_cb input{margin-top:2px;flex-shrink:0}
+.settings_section{margin-top:14px;padding-top:12px;border-top:1px solid #374151}
+.settings_section_title{font-size:12px;font-weight:700;color:#c4b5fd;margin-bottom:6px}
+.settings_gpt_actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
+.settings_gpt_actions button,.settings_claude_row button,.settings_window_row button{font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid var(--pets-border);background:#1f2937;color:#e5e7eb;cursor:pointer}
+#settings_openai_key{width:100%;box-sizing:border-box;margin:6px 0 4px;padding:6px 8px;border-radius:6px;border:1px solid #374151;background:#0b0f18;color:#e5e7eb}
+.settings_claude_row{margin-top:8px}
+.settings_window_row{margin-top:8px}
+.settings_check_row{display:flex;gap:10px;align-items:center;margin-top:6px}
+.settings_check_row input{flex:1}
+.settings_dot{width:10px;height:10px;border-radius:999px;border:1px solid rgba(255,255,255,0.22);background:rgba(148,163,184,0.22);display:inline-block;margin-right:6px;vertical-align:-1px}
+.settings_dot.ok{background:rgba(16,185,129,0.95);border-color:rgba(16,185,129,0.65)}
+.settings_dot.bad{background:rgba(251,146,60,0.95);border-color:rgba(251,146,60,0.65)}
+.settings_check_msg{font-size:12px;color:var(--pets-muted);margin:6px 0 0;min-height:16px}
+.settings_mode_pick{display:flex;flex-wrap:wrap;gap:14px;align-items:center;margin:8px 0}
+.settings_mode_pick label{font-size:13px;color:#e5e7eb;cursor:pointer}
+#settings_poly_mode_apply{font-size:12px;padding:6px 12px;border-radius:6px;border:1px solid var(--pets-border);background:#1f2937;color:#e5e7eb;cursor:pointer}
+#assist_openai_summary{min-height:16px;font-size:11px;color:#94a3b8;margin:0 0 6px;line-height:1.4}
 #piano_section{display:none}
 .hidden{display:none}
 </style>
@@ -20,7 +172,7 @@
 <body>
 
 <div id="app_bar">
-  <img src="assets/chords-logo.png" alt="Chord.Rocks" height="32">
+  <span class="pets-wordmark" role="img" aria-label="Polyphonia">Polyphonia</span>
   <label for="app_instrument_select">Instrument:</label>
   <select id="app_instrument_select">
     <option value="guitar">Guitar</option>
@@ -38,11 +190,26 @@
     <option value="baritone-guitar">Baritone Guitar</option>
     <option value="5-string-violin-fiddle">5 String Violin / Fiddle</option>
   </select>
+  <button type="button" id="poly_assist_btn" class="poly_bar_btn">Assist</button>
+  <button type="button" id="poly_settings_btn" class="poly_bar_btn" title="Настройки Polyphonia">Настройки</button>
+  <label class="poly_bar_lbl" for="poly_layout_select">Страница</label>
+  <select id="poly_layout_select" class="poly_bar_sel">
+    <option value="poly_layout_stack">Колонка</option>
+    <option value="poly_layout_wide">3 колонки</option>
+  </select>
+  <label class="poly_bar_lbl" for="poly_fret_box_select">Гриф</label>
+  <select id="poly_fret_box_select" class="poly_bar_sel" title="Группы ладов для гамм: 3 по горизонтали или 3+2">
+    <option value="fret_box_off">Без боксов</option>
+    <option value="fret_box_3">Боксы по 3 лада</option>
+    <option value="fret_box_32">Боксы 3+2 лада</option>
+  </select>
+  <button type="button" id="poly_fs_btn" class="poly_bar_btn">Fullscreen</button>
 </div>
 
 <div id="page_content_con">
 <form method="get" action="#" onsubmit="return false">
-
+<div id="poly_grid" class="poly_layout_stack">
+  <div class="poly_cell poly_cell_options">
   <div class="info_con" id="option_con">
     <div>
       <div class="op" id="tuning_op">
@@ -75,9 +242,17 @@
       <div class="op">
         <label><input type="checkbox" id="lefty"> Left Handed</label>
       </div>
+      <div class="op">
+        <label><input type="checkbox" id="poly_fingering_toggle"> Fingering hints (heuristic · Assumption)</label>
+      </div>
+      <div class="op poly_string_vis_op">
+        <span class="poly_vis_label" style="display:block;margin-bottom:4px;color:var(--pets-muted);font-size:12px">String visibility</span>
+        <div id="string_visibility_ops" class="poly_string_vis_grid"></div>
+      </div>
     </div>
   </div>
-
+  </div>
+  <div class="poly_cell poly_cell_board">
   <div id="submit_button_con" class="hidden"><button type="submit">Go</button></div>
   <div id="op_submit_button_con" class="hidden"><button type="submit">Update</button></div>
 
@@ -90,7 +265,8 @@
 
 </div>
   </div>
-
+  </div>
+  <div class="poly_cell poly_cell_side">
   <div class="info_con" id="info_con">
     <div id="scale_info_con">
       <div class="header">Scale Info</div>
@@ -123,8 +299,113 @@
       </table>
     </div>
   </div>
+  </div>
+</div>
 
 </form>
+</div>
+
+<aside id="assist_panel" class="assist_panel hidden" aria-hidden="true" aria-label="Assist panel">
+  <div class="assist_head">
+    <h3>Assist</h3>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button type="button" id="assist_settings" class="assist_inline_btn" style="margin:0">Настройки</button>
+      <button type="button" id="assist_close">Close</button>
+    </div>
+  </div>
+  <div class="assist_disclaimer">Чат в стиле ChatGPT: история → ввод → отправка. По умолчанию работает офлайн-черновик. Для GPT нужен запуск через pywebview и ключ OpenAI (env или сессия). Ответы не являются истиной грифа.</div>
+  <div id="assist_messages"></div>
+  <div class="assist_compose">
+    <textarea id="assist_input" rows="3" placeholder="Напр.: «рифф в духе…», «как обыграть этот лад», или вставьте черновик / JSON…"></textarea>
+    <button type="button" id="assist_send" class="assist_send_btn">Отправить</button>
+  </div>
+  <div class="assist_mode_row">
+    <div class="assist_mode_seg" role="group" aria-label="Режим отправки">
+      <button type="button" id="assist_mode_draft" class="assist_seg_btn selected">Черновик</button>
+      <button type="button" id="assist_mode_gpt" class="assist_seg_btn">GPT</button>
+    </div>
+    <label class="assist_mode_cb"><input type="checkbox" id="assist_openai_ctx" checked /> Контекст</label>
+  </div>
+  <details class="assist_more">
+    <summary>Дополнительно</summary>
+    <div class="assist_actions" style="margin-top:10px">
+      <button type="button" id="assist_copy_ctx">Копировать контекст JSON</button>
+      <button type="button" id="assist_musicxml">MusicXML снимок</button>
+    </div>
+    <div id="assist_openai_block" class="assist_openai_block">
+      <div class="assist_openai_title">OpenAI ключ (сессия)</div>
+      <div id="assist_openai_summary"></div>
+      <div id="assist_openai_status" class="assist_small" style="min-height:14px;color:#f97316"></div>
+      <input type="password" id="assist_openai_key" autocomplete="off" placeholder="sk-… сессионный ключ (RAM процесса)" />
+      <div class="assist_openai_row">
+        <button type="button" id="assist_openai_save">Сохранить</button>
+        <button type="button" id="assist_openai_clear">Стереть</button>
+      </div>
+    </div>
+  </details>
+  <div id="assist_pending" class="hidden">
+    <div style="font-size:13px;margin-bottom:6px">Apply refreshes the fretboard from the current form state after explicit confirm.</div>
+    <button type="button" id="assist_apply_confirm">Confirm apply</button>
+    <button type="button" id="assist_apply_cancel">Cancel</button>
+  </div>
+</aside>
+
+<div id="settings_backdrop" class="settings_backdrop hidden" aria-hidden="true">
+  <div id="settings_card" class="settings_card" role="dialog" aria-modal="true" aria-labelledby="settings_title">
+    <div class="settings_head"><h3 id="settings_title">Настройки</h3><button type="button" id="settings_close">Закрыть</button></div>
+    <p class="settings_row"><strong>Текущий режим:</strong> <code id="settings_poly_mode"></code></p>
+    <div class="settings_mode_pick">
+      <span class="settings_hint" style="margin:0">Переключить (эта сессия):</span>
+      <label><input type="radio" name="settings_poly_mode_pick" value="offline" /> Офлайн</label>
+      <label><input type="radio" name="settings_poly_mode_pick" value="assist" /> Assist</label>
+      <button type="button" id="settings_poly_mode_apply">Применить</button>
+    </div>
+    <p id="settings_poly_mode_bridge" class="assist_small" style="min-height:16px;color:#94a3b8"></p>
+    <p class="settings_hint">Следующий запуск окна: как раньше — <code>POLYPHONIA_MODE</code>, меню в <code>phrygian_app.py</code> или URL при открытии файла.</p>
+    <div class="settings_section">
+      <div class="settings_section_title">Подключения</div>
+      <p class="settings_row" style="margin-top:0"><strong>OpenAI GPT</strong> (в этом окне через Python)</p>
+      <p id="settings_gpt_line" class="settings_row" style="margin-top:4px"></p>
+      <p id="settings_gpt_model" class="settings_hint"></p>
+      <div class="settings_gpt_actions">
+        <button type="button" id="settings_gpt_ping"><span class="settings_dot" id="settings_dot_openai"></span>Проверить OpenAI</button>
+      </div>
+      <p id="settings_gpt_ping_result" class="settings_check_msg"></p>
+      <p class="settings_hint" style="margin-top:10px">Сессионный ключ (если не используете только OPENAI_API_KEY):</p>
+      <input type="password" id="settings_openai_key" autocomplete="off" placeholder="sk-… в память процесса" />
+      <div class="settings_gpt_actions">
+        <button type="button" id="settings_openai_save">Сохранить в сессию</button>
+        <button type="button" id="settings_openai_clear">Стереть сессионный ключ</button>
+      </div>
+      <div class="settings_section_title" style="margin-top:14px">Claude (ключ для сессии)</div>
+      <div class="settings_check_row">
+        <input type="password" id="settings_claude_key" autocomplete="off" placeholder="sk-ant-… в память процесса" />
+        <button type="button" id="settings_claude_validate"><span class="settings_dot" id="settings_dot_claude"></span>Проверить Claude</button>
+      </div>
+      <p id="settings_claude_validate_result" class="settings_check_msg"></p>
+      <div class="settings_gpt_actions">
+        <button type="button" id="settings_claude_save">Сохранить в сессию</button>
+        <button type="button" id="settings_claude_clear">Стереть сессионный ключ</button>
+      </div>
+      <div class="settings_section_title" style="margin-top:14px">Claude Code (терминал)</div>
+      <p class="settings_hint">В окне Polyphonia нет «логина» в Anthropic: чат Claude — это отдельный CLI. Один раз в терминале: <code>claude login</code>. Затем из корня репозитория:</p>
+      <div class="settings_claude_row settings_gpt_actions">
+        <button type="button" id="settings_claude_copy">Скопировать команду запуска</button>
+        <button type="button" id="settings_claude_openwin">Открыть терминал отдельным окном</button>
+      </div>
+      <p id="settings_claude_hint" class="settings_hint">Подробнее: <code>docs/dev-notes/claude-terminal-launcher.md</code></p>
+      <div class="settings_section_title" style="margin-top:14px">Окна (Windows)</div>
+      <div class="settings_window_row settings_gpt_actions">
+        <button type="button" id="settings_assist_detach">Открепить Assist/GPT отдельным окном</button>
+        <button type="button" id="settings_windows_tile">Разделить экран 50/50</button>
+      </div>
+    </div>
+    <label class="settings_cb settings_row">
+      <input type="checkbox" id="settings_dialog_md" />
+      <span>Сохранять сообщения Assist в Markdown на диск (<code>polyphonia_sessions/dialogs/</code>, не в git).</span>
+    </label>
+    <p id="settings_md_bridge" class="assist_small" style="min-height:14px;color:#f97316"></p>
+  </div>
 </div>
 
 <script src="assets/jquery.min.js"></script>
@@ -515,5 +796,6 @@ $(document).ready(function(){
   renderScalePage();
 });
 </script>
+<script src="assets/polyphonia_ui.js"></script>
 </body>
 </html>

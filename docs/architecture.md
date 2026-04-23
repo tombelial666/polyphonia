@@ -10,6 +10,7 @@ PETS currently runs as a local desktop wrapper around a generated static web pag
 2. `pywebview` opens local `index.html`
 3. `index.html` loads data and UI logic from `assets/`
 4. fretboard and scale behavior are driven by deterministic JavaScript data
+5. optional frozen desktop build: `polyphonia.spec` produces **Polyphonia** (`polyphonia.exe`) while the repository remains PETS
 
 ## Current Authoring Reality
 
@@ -51,6 +52,21 @@ PETS uses a minimal in-repo AI layer:
 - full app-shell migration
 - structured frontend build system
 - advanced plugin or extension architecture
+
+## Assist and Shell Bridge (Experimental)
+
+### Confirmed
+
+- The generated page may expose a small `window.polyphonia` object for reviewable assist flows, deterministic exports (for example MusicXML snapshots), and optional native hooks such as fullscreen when running under `pywebview` with `js_api`.
+- Assist output is not treated as canonical musical truth; it must remain separable from deterministic `assets/` scale and chord data.
+
+### Assumption
+
+- A future desktop shell can reuse the same bridge names without changing the data layer first.
+
+### Risk
+
+- Any feature that merges chat output into saved project state without an explicit artifact and review step can reintroduce configuration drift.
 
 ## Near-Term Target
 

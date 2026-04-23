@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Polyphonia — режим</title>
+  <style>
+    :root {
+      --bg: #0b0d12;
+      --panel: rgba(22, 26, 36, 0.92);
+      --border: #3d4454;
+      --muted: #9ca3af;
+      --text: #e8eaef;
+      --online-from: #6366f1;
+      --online-to: #14b8a6;
+      --offline-bg: #1f2937;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+      background: radial-gradient(ellipse 120% 80% at 50% -20%, rgba(99, 102, 241, 0.18), transparent),
+        linear-gradient(165deg, #0b0d12 0%, #111827 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .card {
+      width: min(440px, 100%);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 26px 32px;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+      text-align: center;
+    }
+    .logo {
+      width: 96px;
+      height: 96px;
+      border-radius: 20px;
+      margin: 0 auto 12px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.55rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .tagline {
+      margin: 0 0 22px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    .mode-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .btn-mode {
+      cursor: pointer;
+      border: 2px solid transparent;
+      border-radius: 12px;
+      padding: 18px 12px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      color: #fff;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+    }
+    .btn-mode:hover {
+      transform: translateY(-2px);
+    }
+    .btn-mode:focus {
+      outline: 2px solid rgba(99, 102, 241, 0.6);
+      outline-offset: 2px;
+    }
+    .btn-online {
+      background: linear-gradient(135deg, var(--online-from), var(--online-to));
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.35);
+    }
+    .btn-online.selected {
+      border-color: #a5b4fc;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35), 0 8px 24px rgba(20, 184, 166, 0.35);
+    }
+    .btn-offline {
+      background: var(--offline-bg);
+      border-color: var(--border);
+      color: #d1d5db;
+    }
+    .btn-offline.selected {
+      border-color: #6b7280;
+      color: #f9fafb;
+      box-shadow: 0 0 0 3px rgba(107, 114, 128, 0.35);
+    }
+    #online_panel {
+      text-align: left;
+      margin-bottom: 18px;
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      background: rgba(15, 23, 42, 0.65);
+      transform-origin: top;
+      transition: opacity 180ms ease, transform 180ms ease, max-height 240ms ease, margin-bottom 180ms ease;
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      max-height: 340px;
+    }
+    #online_panel.hidden {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.99);
+      max-height: 0;
+      margin-bottom: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    #online_panel label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #c4b5fd;
+      margin: 10px 0 4px;
+    }
+    #online_panel input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #0b0f18;
+      color: var(--text);
+      font-size: 0.9rem;
+    }
+    .key_row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .key_row input { flex: 1; }
+    .btn-check {
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(17, 24, 39, 0.85);
+      color: #e5e7eb;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+    .btn-check:disabled { opacity: 0.6; cursor: not-allowed; }
+    .status_dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(148,163,184,0.25);
+      display: inline-block;
+    }
+    .status_dot.ok { background: rgba(16,185,129,0.95); border-color: rgba(16,185,129,0.65); }
+    .status_dot.bad { background: rgba(251,146,60,0.95); border-color: rgba(251,146,60,0.65); }
+    .status_text { font-size: 0.78rem; color: var(--muted); margin: 6px 0 0; min-height: 1.2em; }
+    .hint {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.4;
+      margin: 0 0 8px;
+    }
+    .btn-go {
+      width: 100%;
+      cursor: pointer;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(90deg, #4f46e5, #0d9488);
+      opacity: 0.45;
+      pointer-events: none;
+      transition: opacity 0.15s ease;
+    }
+    .btn-go.ready {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .btn-go.ready:hover {
+      filter: brightness(1.08);
+    }
+    .btn-go.loading {
+      opacity: 0.92;
+      pointer-events: none;
+      filter: saturate(0.9);
+    }
+    .btn-go .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      margin-right: 8px;
+      vertical-align: -2px;
+      border-radius: 999px;
+      border: 2px solid rgba(255,255,255,0.35);
+      border-top-color: rgba(255,255,255,0.95);
+      animation: spin 900ms linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .btn-mode.selected {
+      transform: translateY(-1px);
+    }
+    #err {
+      margin: 12px 0 0;
+      min-height: 1.2em;
+      font-size: 0.85rem;
+      color: #fb923c;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img class="logo" src="./polyphonia_launcher_icon.png" width="96" height="96" alt="" onerror="this.style.display='none'" />
+    <h1>Polyphonia</h1>
+    <p class="tagline">Выберите режим запуска</p>
+    <div class="mode-row">
+      <button type="button" class="btn-mode btn-online" id="btn_online" aria-pressed="false">ONLINE</button>
+      <button type="button" class="btn-mode btn-offline" id="btn_offline" aria-pressed="false">OFFLINE</button>
+    </div>
+    <div id="online_panel" class="hidden" aria-hidden="true">
+      <p class="hint">Assist и GPT в этом окне. Ключи только в RAM процесса (не в файл). Можно оставить пустым, если заданы переменные OPENAI_API_KEY и ANTHROPIC_API_KEY.</p>
+      <label for="openai_key">OpenAI API Key</label>
+      <div class="key_row">
+        <input type="password" id="openai_key" autocomplete="off" placeholder="sk-…" />
+        <button type="button" class="btn-check" id="btn_check_openai"><span class="status_dot" id="dot_openai"></span> Проверить</button>
+      </div>
+      <div class="status_text" id="st_openai"></div>
+      <label for="claude_key">Claude API Key</label>
+      <div class="key_row">
+        <input type="password" id="claude_key" autocomplete="off" placeholder="sk-ant-…" />
+        <button type="button" class="btn-check" id="btn_check_claude"><span class="status_dot" id="dot_claude"></span> Проверить</button>
+      </div>
+      <div class="status_text" id="st_claude"></div>
+    </div>
+    <button type="button" class="btn-go ready" id="btn_go"><span class="btn_go_label">Далее</span></button>
+    <p id="err"></p>
+  </div>
+  <script>
+    (function () {
+      var selected = "assist";
+      var onlineEl = document.getElementById("btn_online");
+      var offlineEl = document.getElementById("btn_offline");
+      var panel = document.getElementById("online_panel");
+      var go = document.getElementById("btn_go");
+      var err = document.getElementById("err");
+      var stOpenai = document.getElementById("st_openai");
+      var stClaude = document.getElementById("st_claude");
+      var dotOpenai = document.getElementById("dot_openai");
+      var dotClaude = document.getElementById("dot_claude");
+      var btnCheckOpenai = document.getElementById("btn_check_openai");
+      var btnCheckClaude = document.getElementById("btn_check_claude");
+
+      function setLoading(isLoading) {
+        if (!go) return;
+        go.classList.toggle("loading", !!isLoading);
+        try {
+          onlineEl.disabled = !!isLoading;
+          offlineEl.disabled = !!isLoading;
+        } catch (e0) {}
+        var label = go.querySelector(".btn_go_label");
+        if (label) label.textContent = isLoading ? "Запуск…" : "Далее";
+        if (isLoading) {
+          if (!go.querySelector(".spinner")) {
+            var sp = document.createElement("span");
+            sp.className = "spinner";
+            go.insertBefore(sp, go.firstChild);
+          }
+        } else {
+          var sp0 = go.querySelector(".spinner");
+          if (sp0) sp0.remove();
+        }
+      }
+
+      function goLaunch(mode) {
+        err.textContent = "";
+        setLoading(true);
+        var payload = {
+          mode: mode,
+          openai_key: document.getElementById("openai_key").value || "",
+          claude_key: document.getElementById("claude_key").value || ""
+        };
+        if (!window.pywebview || !window.pywebview.api || typeof window.pywebview.api.launch_main !== "function") {
+          err.textContent = "Нет pywebview API (launch_main). Запустите через phrygian_app.py.";
+          setLoading(false);
+          return;
+        }
+        try {
+          var raw = window.pywebview.api.launch_main(JSON.stringify(payload));
+          var done = function (res) {
+            var o = typeof res === "string" ? JSON.parse(res) : res;
+            if (!o.ok) {
+              err.textContent = o.message || o.error || "Ошибка";
+              setLoading(false);
+            }
+          };
+          if (raw && typeof raw.then === "function") raw.then(done).catch(function (e) {
+            err.textContent = e && e.message ? e.message : String(e);
+            setLoading(false);
+          });
+          else done(raw);
+        } catch (e) {
+          err.textContent = e && e.message ? e.message : String(e);
+          setLoading(false);
+        }
+      }
+
+      function setSelected(mode) {
+        selected = mode;
+        onlineEl.classList.toggle("selected", mode === "assist");
+        offlineEl.classList.toggle("selected", mode === "offline");
+        onlineEl.setAttribute("aria-pressed", mode === "assist" ? "true" : "false");
+        offlineEl.setAttribute("aria-pressed", mode === "offline" ? "true" : "false");
+        if (mode === "assist") {
+          panel.classList.remove("hidden");
+          panel.setAttribute("aria-hidden", "false");
+        } else {
+          panel.classList.add("hidden");
+          panel.setAttribute("aria-hidden", "true");
+        }
+        go.classList.add("ready");
+        err.textContent = "";
+      }
+
+      function setDot(dot, ok) {
+        if (!dot) return;
+        dot.classList.remove("ok", "bad");
+        if (ok === true) dot.classList.add("ok");
+        if (ok === false) dot.classList.add("bad");
+      }
+
+      function callApi(method, payloadObj, onDone) {
+        if (!window.pywebview || !window.pywebview.api || typeof window.pywebview.api[method] !== "function") {
+          onDone({ ok: false, error: "no_pywebview", message: "Нет pywebview API. Запустите через phrygian_app.py." });
+          return;
+        }
+        try {
+          var raw = window.pywebview.api[method](JSON.stringify(payloadObj || {}));
+          var done = function (res) {
+            try {
+              onDone(typeof res === "string" ? JSON.parse(res) : res);
+            } catch (e0) {
+              onDone({ ok: false, error: "bad_json", message: String(e0 && e0.message ? e0.message : e0) });
+            }
+          };
+          if (raw && typeof raw.then === "function") raw.then(done).catch(function (e) {
+            onDone({ ok: false, error: "call_failed", message: String(e && e.message ? e.message : e) });
+          });
+          else done(raw);
+        } catch (e) {
+          onDone({ ok: false, error: "call_failed", message: String(e && e.message ? e.message : e) });
+        }
+      }
+
+      function logToHost(eventName, payload) {
+        try {
+          if (window.pywebview && window.pywebview.api && typeof window.pywebview.api.log_client_event === "function") {
+            var p = payload || {};
+            p.event = eventName;
+            p.href = String(window.location && window.location.href ? window.location.href : "");
+            var raw = window.pywebview.api.log_client_event(JSON.stringify(p));
+            if (raw && typeof raw.then === "function") raw.catch(function () {});
+          }
+        } catch (e0) {}
+      }
+
+      window.addEventListener("error", function (e) {
+        try {
+          var msg = e && e.message ? e.message : String(e);
+          logToHost("startup_window_error", { message: msg, filename: e && e.filename, lineno: e && e.lineno });
+        } catch (e0) {}
+      });
+      window.addEventListener("unhandledrejection", function (e) {
+        try {
+          var r = e && e.reason ? e.reason : e;
+          var msg = r && r.message ? r.message : String(r);
+          logToHost("startup_unhandledrejection", { message: msg });
+        } catch (e0) {}
+      });
+
+      onlineEl.addEventListener("click", function () {
+        setSelected("assist");
+      });
+      offlineEl.addEventListener("click", function () {
+        setSelected("offline");
+        goLaunch("offline");
+      });
+
+      go.addEventListener("click", function () {
+        goLaunch(selected || "offline");
+      });
+
+      btnCheckOpenai.addEventListener("click", function () {
+        if (stOpenai) stOpenai.textContent = "Проверяю…";
+        setDot(dotOpenai, null);
+        callApi("validate_openai_key", { key: document.getElementById("openai_key").value || "" }, function (o) {
+          if (o && o.ok) {
+            if (stOpenai) stOpenai.textContent = "OK (HTTP " + (o.http_status || 200) + ")";
+            setDot(dotOpenai, true);
+          } else {
+            if (stOpenai) stOpenai.textContent = String((o && (o.message || o.error)) || "Ошибка");
+            setDot(dotOpenai, false);
+          }
+        });
+      });
+
+      btnCheckClaude.addEventListener("click", function () {
+        if (stClaude) stClaude.textContent = "Проверяю…";
+        setDot(dotClaude, null);
+        callApi("validate_claude_key", { key: document.getElementById("claude_key").value || "" }, function (o) {
+          if (o && o.ok) {
+            if (stClaude) stClaude.textContent = o.message || "OK";
+            setDot(dotClaude, true);
+          } else {
+            if (stClaude) stClaude.textContent = String((o && (o.message || o.error)) || "Ошибка");
+            setDot(dotClaude, false);
+          }
+        });
+      });
+
+      // default state: OFFLINE selected, panel hidden, "Далее" active
+      logToHost("startup_loaded", {});
+      setSelected("assist");
+    })();
+  </script>
+</body>
+</html>

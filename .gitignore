@@ -3,6 +3,7 @@ dist/
 __pycache__/
 .pytest_cache/
 qa/results/
+polyphonia_sessions/
 *.pyc
 *.pyo
 *.pyd

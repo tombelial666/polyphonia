@@ -20,6 +20,7 @@ Before planning or implementation, read:
 8. `docs/legacy-reference-index.md`
 9. `repo-index.yaml`
 10. `impact-map.yaml`
+11. `docs/dev-workflow/qa-change-gate.md`
 
 ## Source Of Truth
 
@@ -40,6 +41,16 @@ Before planning or implementation, read:
 - Small technical plan before risky edits
 - Human review before presenting major workflow or architecture shifts
 - Docs update whenever boundaries or process assumptions change
+
+## QA change gate
+
+Before **`git commit`** or **`git push`** to the dev integration branch:
+
+- Update the **Committed change record** in the relevant `tasks/*.md` for every **material** code or truth change.
+- Keep `repo-index.yaml` aligned with the paths that ship; run `python scripts/check_change_gate.py --staged` before commit and the non-staged script before push (see `docs/dev-workflow/qa-change-gate.md`).
+- Use the **`qa-change-gate-reviewer`** agent (`.cursor/commands/qa-change-gate.md`) when the diff is non-trivial.
+
+Treat **dev deployment parity** as **Confirmed** only with explicit evidence; otherwise mark **Assumption** or **Open Question**.
 
 ## Domain Specialists
 

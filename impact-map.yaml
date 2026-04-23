@@ -11,7 +11,7 @@ impact_surfaces:
         role: runtime-html
       - path: assets/
         role: runtime-assets
-      - path: ChordRocks.spec
+      - path: polyphonia.spec
         role: packaging-spec
     edges:
       - from: phrygian_app.py
@@ -20,13 +20,13 @@ impact_surfaces:
       - from: index.html
         to: assets/
         type: loads
-      - from: ChordRocks.spec
+      - from: polyphonia.spec
         to: phrygian_app.py
         type: packages
-      - from: ChordRocks.spec
+      - from: polyphonia.spec
         to: index.html
         type: packages
-      - from: ChordRocks.spec
+      - from: polyphonia.spec
         to: assets/
         type: packages
 
@@ -43,6 +43,8 @@ impact_surfaces:
         role: html-fragment
       - path: index.html
         role: generated-runtime-output
+      - path: assets/polyphonia_ui.js
+        role: ui-addon
     edges:
       - from: build_index.py
         to: guitar_template.html
@@ -56,6 +58,9 @@ impact_surfaces:
       - from: build_index.py
         to: index.html
         type: writes
+      - from: build_index.py
+        to: assets/polyphonia_ui.js
+        type: packages
 
   theory_data:
     description: Music-theory dictionaries and their consumers.
@@ -252,7 +257,7 @@ impact_surfaces:
         role: saved-page-bundle
       - path: build/A Phrygian Dominant/
         role: legacy-build-cache
-      - path: build/ChordRocks/
+      - path: build/polyphonia/
         role: active-build-cache
     edges:
       - from: A Phrygian Dominant.html
@@ -267,8 +272,8 @@ impact_surfaces:
       - from: build/A Phrygian Dominant/
         to: A Phrygian Dominant.spec
         type: derived-from
-      - from: build/ChordRocks/
-        to: ChordRocks.spec
+      - from: build/polyphonia/
+        to: polyphonia.spec
         type: derived-from
 
 risk_hotspots:

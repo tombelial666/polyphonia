@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pets.local/schemas/riff-fragment-v0.json",
+  "title": "PolyphoniaRiffFragmentV0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "tempoBpm", "meter", "bars", "instrumentRole"],
+  "properties": {
+    "schemaVersion": { "const": "0.1" },
+    "tempoBpm": { "type": "integer", "minimum": 20, "maximum": 320 },
+    "meter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["numerator", "denominator"],
+      "properties": {
+        "numerator": { "type": "integer", "minimum": 1, "maximum": 32 },
+        "denominator": { "type": "integer", "enum": [2, 4, 8, 16] }
+      }
+    },
+    "instrumentRole": { "type": "string", "enum": ["guitar", "piano", "bass", "other"] },
+    "rootNoteCode": {
+      "type": "string",
+      "description": "Optional anchor, e.g. same codes as #note select"
+    },
+    "scaleCode": {
+      "type": "string",
+      "description": "Optional anchor, e.g. same codes as #scale select"
+    },
+    "bars": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["events"],
+        "properties": {
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["beat", "durationBeats", "pitchClass", "octave"],
+              "properties": {
+                "beat": { "type": "number", "minimum": 0 },
+                "durationBeats": { "type": "number", "exclusiveMinimum": 0 },
+                "pitchClass": { "type": "integer", "minimum": 0, "maximum": 11 },
+                "octave": { "type": "integer", "minimum": 0, "maximum": 8 },
+                "velocity": { "type": "integer", "minimum": 1, "maximum": 127 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "assumptions": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

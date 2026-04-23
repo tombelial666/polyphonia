@@ -27,7 +27,7 @@
 | OUT-05 | Runbook | `qa/packages/offline-scales-fretboard/test-execution-runbook.md` |
 | OUT-06 | Итог прогона | `qa/packages/offline-scales-fretboard/test-execution-summary.md` |
 | OUT-07 | JUnit XML (генерируется) | `qa/results/junit.xml` |
-| OUT-08 | Код автотестов | `tests/e2e/test_offline_scales_chords_e2e.py`, `tests/e2e/conftest.py` |
+| OUT-08 | Код автотестов | `tests/e2e/offline_scales/`, `tests/e2e/support/scales_app.py`, `tests/e2e/conftest.py` |
 | OUT-09 | Краткая инструкция для разработчиков | `docs/testing/offline-scales-chords-e2e.md` |
 
 ## Deferred
@@ -36,4 +36,4 @@
 
 ## Open Question
 
-- Нужен ли CI-воркфлоу, который публикует `qa/results/` как артефакт job, а не хранит его в git.
+- Нужно ли в CI публиковать `qa/results/junit.xml` как артефакт job (сейчас прогон без `--junitxml` в `.github/workflows/ci.yml`).

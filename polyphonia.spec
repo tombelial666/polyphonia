@@ -1,5 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+# PyInstaller spec for the Polyphonia desktop build (PETS repository).
+# Build: pyinstaller polyphonia.spec  →  dist/polyphonia.exe
 
 a = Analysis(
     ['phrygian_app.py'],
@@ -22,14 +24,14 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='ChordRocks',
+    name='polyphonia',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

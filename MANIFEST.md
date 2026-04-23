@@ -8,6 +8,7 @@ PETS is a guitar-focused reference and composition support project built around 
 
 - Primary current form: local static web application wrapped by a lightweight desktop shell
 - Current shell: `pywebview`
+- Packaged desktop executable name: **Polyphonia** (`polyphonia.spec` → `dist/polyphonia.exe`); repository and docs umbrella remain **PETS**
 - Future direction: cleaner desktop shell such as `Electron` or `Tauri`
 - Product stance: human-in-the-loop tool for composers, not a one-click composition machine
 
@@ -26,6 +27,9 @@ PETS is a guitar-focused reference and composition support project built around 
 - The app currently runs by opening `index.html` through `phrygian_app.py`.
 - Tuning, scale, and fretboard behavior depend on static data files in `assets/`.
 - `build_index.py` is part of the current generation path for `index.html`.
+- Local QA documentation packages live under `qa/packages/`; executable checks under `tests/` (for example `tests/e2e/`). Machine-generated test output belongs in gitignored `qa/results/` only.
+- Before commit or push to dev, follow `docs/dev-workflow/qa-change-gate.md` and run `scripts/check_change_gate.py` so `tasks/` and `repo-index.yaml` stay aligned with the diff.
+- On GitHub, `.github/workflows/ci.yml` runs the same change-gate script and Playwright E2E (`tests/e2e/offline_scales`) on Ubuntu for pushes and pull requests.
 - The project is being upgraded with a curated AI development layer from donor repositories.
 - The AI layer may include narrow music-domain specialist agents if they stay reviewable and do not bypass human musical judgment.
 - The AI layer may use a light music-direction role and reusable instrument skills, but not a heavy autonomous orchestration stack.

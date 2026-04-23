@@ -25,7 +25,7 @@ playwright install chromium
 ```powershell
 Set-Location <корень-PETS>
 New-Item -ItemType Directory -Force -Path qa/results | Out-Null
-python -m pytest tests/e2e/test_offline_scales_chords_e2e.py -v `
+python -m pytest tests/e2e/offline_scales -v -m e2e `
   --junitxml=qa/results/junit.xml
 ```
 

@@ -51,7 +51,7 @@ Restore the DOM structure expected by the existing stringed-instrument CSS so th
 
 ## Automated verification
 
-- E2E (Playwright + pytest): `tests/e2e/test_offline_scales_chords_e2e.py`.
+- E2E (Playwright + pytest): `tests/e2e/offline_scales/` (маркер `e2e`).
 - QA-пакет (кейсы, трассировка, runbook): `qa/packages/offline-scales-fretboard/`.
 - Локальные отчёты: `qa/results/` (в `.gitignore`).
 - Краткая инструкция: `docs/testing/offline-scales-chords-e2e.md`.

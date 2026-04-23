@@ -2,7 +2,7 @@
 
 ## Summary
 
-- **Total automated cases**: 7 (pytest + Playwright, `tests/e2e/test_offline_scales_chords_e2e.py`)
+- **Total automated cases**: 7 (pytest + Playwright, каталог `tests/e2e/offline_scales/`, маркер `e2e`)
 - **Total documented manual follow-ups**: 1 (сеть)
 - **Primary risk**: расхождение данных `assets/scales.data.min.js` и ожидаемой теории; автотесты фиксируют поведение текущих данных + UI.
 
@@ -31,7 +31,7 @@
 - `.s_1` на нулевом ладу имеет `in_scale` и `scale_root` (ля на 5-й струне).
 - `.s_5` на нулевом ладу имеет `in_scale` (ми басовой).
 
-**Automation:** `test_default_a_major_scale_info_and_root_highlight`
+**Automation:** `test_a_major_scale_info_and_root_highlight` (`test_a_major_scale_info.py`)
 
 ---
 

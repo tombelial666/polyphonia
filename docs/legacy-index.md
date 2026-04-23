@@ -40,11 +40,11 @@ This document is the full legacy map of PETS. It exists to describe the real pro
 | Path | Category | Status | Description |
 |---|---|---|---|
 | `phrygian_app.py` | runtime shell | authoritative runtime | Current desktop launcher using `pywebview`; loads local `index.html` via `file:///` |
-| `build_index.py` | build helper | authoritative for current HTML assembly | Builds the current `index.html` from templates and fragments; contains legacy absolute paths and therefore represents a fragile but still real source file |
+| `build_index.py` | build helper | authoritative for current HTML assembly | Builds the current `index.html` from templates and fragments; paths are resolved relative to the repository root |
 | `index.html` | runtime UI output | authoritative runtime output | Current runnable page used by `phrygian_app.py`; assembled output, not the cleanest authoring source |
 | `guitar_template.html` | template source | authoritative build input | Template source used by `build_index.py` to extract note and scale selectors |
 | `piano_template.html` | template source | authoritative build input | Template source used by `build_index.py` together with `_piano_html.txt` |
-| `ChordRocks.spec` | packaging spec | authoritative packaging path | Active PyInstaller spec for packaging `phrygian_app.py`, `index.html`, and `assets/` |
+| `polyphonia.spec` | packaging spec | authoritative packaging path | Active PyInstaller spec for packaging `phrygian_app.py`, `index.html`, and `assets/` into **Polyphonia** (`polyphonia.exe`) |
 
 ### Canonical Documentation Tree
 
@@ -87,7 +87,7 @@ build_index.py
   -> assets/_piano_html.txt
   -> writes index.html
 
-ChordRocks.spec
+polyphonia.spec
   -> phrygian_app.py
   -> index.html
   -> assets/
@@ -149,7 +149,7 @@ The reference and build layers are also split out:
 
 ### Confirmed
 
-- `build_index.py` contains absolute paths under `D:/Reps/PETS/...`, which makes the build path fragile if the repository is moved.
+- Older local trees may still contain a `build/ChordRocks/` cache from a former spec filename; current builds use `build/polyphonia/`.
 - `index.html` is the active runtime output, but not the cleanest authoring source.
 - `assets/` contains mostly minified JavaScript and CSS without an obvious upstream unminified source tree in this repository.
 - `.cursor/` is the primary adapter layer; `.claude/` is a generated mirror.

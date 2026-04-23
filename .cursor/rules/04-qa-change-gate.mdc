@@ -1,0 +1,16 @@
+---
+description: PETS QA change gate before commit and push
+alwaysApply: true
+---
+
+# QA change gate
+
+Before the human attempts **`git commit`** or **`git push`** (especially to the dev integration branch):
+
+1. **Diff** — know exactly what will ship: `git status`, `git diff`, and for integration `git diff <base>...HEAD` (base defaults to `origin/develop` or `PETS_CHANGE_GATE_BASE`).
+2. **`tasks/`** — any **material** product or repo-truth change must update a task file under `tasks/` with an up-to-date **Committed change record** block (see `tasks/_template.md`). Mirror-only `.claude/` / `CLAUDE.md` syncs without other paths are exempt.
+3. **`repo-index.yaml`** — every new or renamed **material** path must appear under `entries` (or fall under an existing indexed prefix such as `docs/` or `assets/`). If the index changes in the same change set, treat that as the version intended for dev.
+4. **Automation** — run `python scripts/check_change_gate.py --staged` before commit; run without `--staged` before push to dev (after `git fetch`). Use `--allow-no-task` only as a documented emergency escape.
+5. **Agent** — for non-trivial diffs, run the `qa-change-gate-reviewer` agent (`.cursor/commands/qa-change-gate.md`) and address blockers before commit.
+
+Do not claim the index matches dev deployment without an explicit **Confirmed** note in the task or release record; otherwise label it **Assumption** or **Open Question**.

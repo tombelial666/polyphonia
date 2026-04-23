@@ -2,13 +2,13 @@
 
 | TC ID | Кратко | Автотест (pytest) | Evidence (локально) |
 |-------|--------|-------------------|------------------------|
-| TC-PETS-SCALE-01 | A Major, тексты + root | `test_default_a_major_scale_info_and_root_highlight` | `qa/results/junit.xml` после прогона |
-| TC-PETS-SCALE-02 | A natural minor | `test_natural_minor_changes_scale_notes` | `qa/results/junit.xml` |
-| TC-PETS-CHORD-01 | Клик аккорда | `test_chord_click_shows_chord_info_and_highlight` | `qa/results/junit.xml` |
-| TC-PETS-UX-01 | Капо | `test_capo_moves_capo_marker_and_keeps_scale_highlight` | `qa/results/junit.xml` |
-| TC-PETS-UX-02 | Minor third + melodic minor | `test_alternate_tuning_minor_third_still_renders_scale` | `qa/results/junit.xml` |
-| TC-PETS-UX-03 | Левша | `test_lefty_toggles_display_class` | `qa/results/junit.xml` |
-| TC-PETS-UX-04 | Бемоли | `test_flat_accidental_updates_note_labels` | `qa/results/junit.xml` |
+| TC-PETS-SCALE-01 | A Major, тексты + root | `offline_scales/test_a_major_scale_info.py::test_a_major_scale_info_and_root_highlight` | `qa/results/junit.xml` после прогона |
+| TC-PETS-SCALE-02 | A natural minor | `offline_scales/test_natural_minor_scale_notes.py::test_natural_minor_changes_scale_notes` | `qa/results/junit.xml` |
+| TC-PETS-CHORD-01 | Клик аккорда | `offline_scales/test_chord_table_click.py::test_chord_click_shows_chord_info_and_highlight` | `qa/results/junit.xml` |
+| TC-PETS-UX-01 | Капо | `offline_scales/test_capo.py::test_capo_moves_capo_marker_and_keeps_scale_highlight` | `qa/results/junit.xml` |
+| TC-PETS-UX-02 | Minor third + melodic minor | `offline_scales/test_alternate_tuning_melodic_minor.py::test_alternate_tuning_minor_third_still_renders_scale` | `qa/results/junit.xml` |
+| TC-PETS-UX-03 | Левша | `offline_scales/test_lefty_toggle.py::test_lefty_toggles_display_class` | `qa/results/junit.xml` |
+| TC-PETS-UX-04 | Бемоли | `offline_scales/test_flat_accidental.py::test_flat_accidental_updates_note_labels` | `qa/results/junit.xml` |
 | TC-PETS-MANUAL-NET-01 | Нет внешней сети | *ручная* | n/a |
 
 ## Источники истины

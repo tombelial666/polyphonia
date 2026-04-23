@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "0.1",
+  "tempoBpm": 92,
+  "meter": { "numerator": 4, "denominator": 4 },
+  "instrumentRole": "guitar",
+  "rootNoteCode": "a",
+  "scaleCode": "natural-minor",
+  "bars": [
+    {
+      "events": [
+        { "beat": 0, "durationBeats": 1, "pitchClass": 9, "octave": 4, "velocity": 90 },
+        { "beat": 1, "durationBeats": 1, "pitchClass": 0, "octave": 4, "velocity": 88 }
+      ]
+    }
+  ],
+  "assumptions": ["Heuristic fingering not included in v0."]
+}

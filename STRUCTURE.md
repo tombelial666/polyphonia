@@ -37,9 +37,9 @@ Current runnable project files:
 - `index.html`
 - `build_index.py`
 - `assets/`
-- `ChordRocks.spec`
+- `polyphonia.spec`
 
-This is the executable application layer.
+This is the executable application layer. The shipped desktop app is named **Polyphonia** (`polyphonia.exe` from `polyphonia.spec`).
 
 ### 4. Task Artifact Layer
 
@@ -56,9 +56,12 @@ Quality assurance material that is **not** runtime product code lives in:
 
 - `qa/README.md` — scope and rules for this layer
 - `qa/packages/<feature>/` — versioned QA docs (test design, cases, traceability, runbooks)
-- `tests/` — executable checks (`tests/e2e/` for browser-level scenarios)
+- `tests/` — executable checks (`tests/e2e/` for browser-level scenarios; тематические подпакеты, например `tests/e2e/offline_scales/`)
+- `.github/workflows/` — CI (например QA change gate + E2E)
 
 Machine-generated output from local or CI runs must go to `qa/results/`, which is **gitignored** so reports and scratch files do not pollute the canonical tree.
+
+Commit and push expectations for material changes are defined in `docs/dev-workflow/qa-change-gate.md` and enforced locally via `scripts/check_change_gate.py`.
 
 ### 5. Generated / Disposable Layer
 
