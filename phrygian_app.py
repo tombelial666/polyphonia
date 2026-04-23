@@ -445,6 +445,21 @@ def _bootstrap_session_keys_from_persisted_auth() -> None:
         _SESSION_CLAUDE_KEY_ORIGIN = "persisted"
 
 
+def _musicxml_export_dir() -> Path:
+    # Rule: always save MusicXML copies to this folder on this machine.
+    return Path(r"D:\projects\MIDI-MusXML")
+
+
+def _safe_musicxml_filename(name: str) -> str:
+    base = Path(str(name or "").replace("\\", "/")).name.strip() or "polyphonia-export.musicxml"
+    stem = Path(base).stem or "polyphonia-export"
+    out = []
+    for ch in stem:
+        out.append(ch if ch.isalnum() or ch in "-_." else "_")
+    safe_stem = "".join(out).strip("._") or "polyphonia-export"
+    return safe_stem[:120] + ".musicxml"
+
+
 def _openai_key_id(key: str) -> str:
     return hashlib.sha256((key or "").encode("utf-8")).hexdigest()
 
@@ -670,6 +685,29 @@ class PolyphoniaApi:
         fs = getattr(win, "fullscreen", None)
         if isinstance(fs, bool):
             win.fullscreen = not fs
+
+    @_api_log_wrap
+    def save_musicxml(self, payload_json: str = "") -> str:
+        """
+        Save MusicXML text to local export directory.
+        payload_json: {"filename":"...", "musicxml":"..."}
+        """
+        try:
+            payload: dict[str, Any] = json.loads(payload_json) if payload_json else {}
+        except json.JSONDecodeError as e:
+            return json.dumps({"ok": False, "error": "invalid_json", "message": str(e)}, ensure_ascii=False)
+        raw_xml = payload.get("musicxml")
+        if not isinstance(raw_xml, str) or not raw_xml.strip():
+            return json.dumps({"ok": False, "error": "empty_musicxml"}, ensure_ascii=False)
+        fn = _safe_musicxml_filename(str(payload.get("filename") or "polyphonia-export.musicxml"))
+        try:
+            d = _musicxml_export_dir()
+            d.mkdir(parents=True, exist_ok=True)
+            p = d / fn
+            p.write_text(raw_xml, encoding="utf-8")
+            return json.dumps({"ok": True, "path": str(p)}, ensure_ascii=False)
+        except Exception as e:
+            return json.dumps({"ok": False, "error": "write_failed", "message": str(e)}, ensure_ascii=False)
 
     @_api_log_wrap
     def log_client_event(self, payload_json: str = "") -> str:

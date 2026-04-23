@@ -437,7 +437,22 @@
     }
     var xml = buildMusicXmlFromScale(keys);
     var safe = ($("#note").val() || "x") + "-" + ($("#scale").val() || "scale");
-    downloadText("polyphonia-" + safe + "-snapshot.musicxml", xml, "application/vnd.recordare.musicxml+xml");
+    var filename = "polyphonia-" + safe + "-snapshot.musicxml";
+    // Always keep browser download behavior.
+    downloadText(filename, xml, "application/vnd.recordare.musicxml+xml");
+    // Additionally save a local copy when running via pywebview.
+    try {
+      if (window.pywebview && window.pywebview.api && typeof window.pywebview.api.save_musicxml === "function") {
+        callPyApi("save_musicxml", JSON.stringify({ filename: filename, musicxml: xml }))
+          .then(function (raw) {
+            try {
+              var o = typeof raw === "string" ? JSON.parse(raw) : raw;
+              if (o && o.ok && o.path) appendAssistLine("system", "MusicXML сохранён: " + String(o.path));
+            } catch (e1) {}
+          })
+          .catch(function () {});
+      }
+    } catch (e0) {}
   }
 
   function suggestFinger(stringIndex, fret) {
