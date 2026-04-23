@@ -13,6 +13,7 @@
   var STORAGE_ASSIST_SEND_MODE = "polyphonia_assist_send_mode";
   var STORAGE_ASSIST_GOAL_MODE = "polyphonia_assist_goal_mode";
   var STORAGE_UI_ZOOM = "polyphonia_ui_zoom";
+  var STORAGE_POLY_MODE = "polyphonia_poly_mode";
   var STORAGE_ASSIST_THREAD_ACTIVE = "polyphonia_assist_thread_active_";
   var STORAGE_ASSIST_TRANSCRIPT = "polyphonia_assist_transcript_";
   var lastStringCount = null;
@@ -69,9 +70,63 @@
     } catch (e1) {}
   }
 
+  function setPolyView(view) {
+    var next = String(view || "").toLowerCase();
+    if (next !== "assist") next = "";
+    try {
+      var u = new URL(window.location.href);
+      var hash = (u.hash || "").replace(/^#/, "");
+      var params = new URLSearchParams(hash);
+      if (next) params.set("poly_view", next);
+      else params.delete("poly_view");
+      var nextHash = params.toString();
+      u.hash = nextHash ? nextHash : "";
+      if (u.searchParams && u.searchParams.has("poly_view")) {
+        if (next) u.searchParams.set("poly_view", next);
+        else u.searchParams.delete("poly_view");
+      }
+      window.history.replaceState({}, "", u.toString());
+    } catch (e0) {}
+    applyPolyViewClass();
+    refreshAssistChrome();
+  }
+
+  function refreshAssistChrome() {
+    var expanded = getPolyView() === "assist";
+    $("#assist_focus")
+      .text(expanded ? "\u0421\u0432\u0435\u0440\u043d\u0443\u0442\u044c" : "\u0420\u0430\u0437\u0432\u0435\u0440\u043d\u0443\u0442\u044c")
+      .attr("aria-pressed", expanded ? "true" : "false");
+  }
+
   function syncSettingsModeRadios() {
     var m = getPolyMode();
     $('input[name="settings_poly_mode_pick"][value="' + m + '"]').prop("checked", true);
+    syncPolyModeRememberCheckbox();
+  }
+
+  function syncPolyModeRememberCheckbox() {
+    try {
+      var saved = localStorage.getItem(STORAGE_POLY_MODE);
+      $("#settings_poly_mode_remember").prop("checked", saved === getPolyMode());
+    } catch (e) {}
+  }
+
+  function restorePolyModeFromStorage() {
+    try {
+      var saved = localStorage.getItem(STORAGE_POLY_MODE);
+      if ((saved === "offline" || saved === "assist") && saved !== getPolyMode()) {
+        if (window.pywebview && window.pywebview.api && typeof window.pywebview.api.set_poly_mode === "function") {
+          callPyApi("set_poly_mode", JSON.stringify({ mode: saved })).catch(function () {});
+        }
+        try {
+          var u = new URL(window.location.href);
+          u.hash = "poly_mode=" + saved;
+          window.history.replaceState({}, "", u.toString());
+        } catch (e2) {}
+        applyPolyModeClass();
+        syncAssistOpenaiControls();
+      }
+    } catch (e) {}
   }
 
   function applyPolyModeRuntime(newMode) {
@@ -93,13 +148,22 @@
           $("#assist_panel").addClass("hidden").attr("aria-hidden", "true");
         }
         $("#settings_poly_mode").text(getPolyMode());
+        try {
+          if ($("#settings_poly_mode_remember").prop("checked")) {
+            localStorage.setItem(STORAGE_POLY_MODE, newMode);
+          } else {
+            localStorage.removeItem(STORAGE_POLY_MODE);
+          }
+        } catch (e3) {}
         syncSettingsModeRadios();
         refreshSettingsMdBridge();
         syncAssistOpenaiControls();
         if (bridge.length) {
+          var isRemembered = !!localStorage.getItem(STORAGE_POLY_MODE);
           if (hadApi) {
-            bridge.text(
-              "Режим действует до закрытия окна. Новый запуск phrygian_app.py снова спросит / возьмёт POLYPHONIA_MODE."
+            bridge.text(isRemembered
+              ? "Режим запомнен — восстановится при следующем открытии."
+              : "Режим действует до закрытия окна. Новый запуск phrygian_app.py снова спросит / возьмёт POLYPHONIA_MODE."
             );
           } else {
             bridge.text(
@@ -288,6 +352,37 @@
       });
   }
 
+  function refreshClaudeConnectionFromHost() {
+    if (!isAssistMode()) {
+      $("#settings_claude_hint").text("Claude terminal доступен в режиме assist.");
+      return;
+    }
+    if (!pywebviewOpenaiCallable() || typeof window.pywebview.api.get_claude_connection !== "function") {
+      $("#settings_claude_hint").text(
+        "Нет моста pywebview — ключ Claude в UI недоступен. Для встроенного терминала задайте Claude key после запуска phrygian_app.py."
+      );
+      return;
+    }
+    callPyApi("get_claude_connection", "")
+      .then(function (raw) {
+        var o = typeof raw === "string" ? JSON.parse(raw) : raw;
+        var source = String((o && o.source) || "none");
+        var line =
+          source === "env"
+            ? "Claude key берётся из окружения."
+            : source === "session"
+              ? "Claude key доступен в текущей сессии."
+              : "Claude key пока не задан.";
+        if (o && o.persisted) line += " На диске есть локально сохранённый ключ.";
+        if (source !== "none") line += " Launcher откроет стабильный API terminal.";
+        else line += " Можно сохранить ключ выше, либо терминал запросит его один раз прямо в консоли.";
+        $("#settings_claude_hint").text(line);
+      })
+      .catch(function () {
+        $("#settings_claude_hint").text("Не удалось прочитать состояние Claude key (Python API).");
+      });
+  }
+
   function callPyApi(methodName, arg) {
     var api = window.pywebview && window.pywebview.api;
     if (!api || typeof api[methodName] !== "function") {
@@ -337,7 +432,7 @@
       $("#assist_openai_summary").text("");
       ensureThreadControlsEnabled(false, "");
       $("#settings_openai_key, #settings_openai_save, #settings_openai_clear, #settings_openai_forget, #settings_gpt_ping, #settings_openai_remember").prop("disabled", true);
-      $("#settings_claude_key, #settings_claude_save, #settings_claude_clear, #settings_claude_validate").prop(
+      $("#settings_claude_key, #settings_claude_save, #settings_claude_clear, #settings_claude_validate, #settings_claude_remember, #settings_claude_forget").prop(
         "disabled",
         true
       );
@@ -349,7 +444,7 @@
     $("#assist_openai_save, #assist_openai_clear, #assist_openai_forget, #assist_ask_gpt, #assist_openai_key, #assist_openai_remember").prop("disabled", !on);
     ensureThreadControlsEnabled(on, on ? "" : "Нет моста pywebview: треды из Python недоступны.");
     $("#settings_openai_key, #settings_openai_save, #settings_openai_clear, #settings_openai_forget, #settings_gpt_ping, #settings_openai_remember").prop("disabled", !on);
-    $("#settings_claude_key, #settings_claude_save, #settings_claude_clear, #settings_claude_validate").prop(
+    $("#settings_claude_key, #settings_claude_save, #settings_claude_clear, #settings_claude_validate, #settings_claude_remember, #settings_claude_forget").prop(
       "disabled",
       !on
     );
@@ -357,6 +452,7 @@
       on ? "" : "Сейчас не pywebview — вызов GPT из приложения недоступен (откройте через phrygian_app.py)."
     );
     refreshOpenaiConnectionFromHost();
+    refreshClaudeConnectionFromHost();
   }
 
   function getScaleNoteKeysForExport() {
@@ -727,21 +823,156 @@
     $("#assist_messages").empty();
   }
 
+  function setAssistStatus(text, tone) {
+    var box = $("#assist_status");
+    if (!box.length) return;
+    box
+      .removeClass("assist_status_ok assist_status_warn assist_status_error")
+      .text(text || "");
+    if (tone === "ok" || tone === "warn" || tone === "error") {
+      box.addClass("assist_status_" + tone);
+    }
+  }
+
+  function copyTextWithFallback(text) {
+    var value = String(text == null ? "" : text);
+    var fallback = function () {
+      return new Promise(function (resolve, reject) {
+        var area = null;
+        try {
+          area = document.createElement("textarea");
+          area.value = value;
+          area.setAttribute("readonly", "readonly");
+          area.style.position = "fixed";
+          area.style.top = "-1000px";
+          area.style.left = "-1000px";
+          area.style.opacity = "0";
+          document.body.appendChild(area);
+          area.focus();
+          area.select();
+          area.setSelectionRange(0, area.value.length);
+          var ok = typeof document.execCommand === "function" && document.execCommand("copy");
+          document.body.removeChild(area);
+          if (!ok) {
+            reject(new Error("copy_failed"));
+            return;
+          }
+          resolve();
+        } catch (err) {
+          try {
+            if (area && area.parentNode) area.parentNode.removeChild(area);
+          } catch (e0) {}
+          reject(err);
+        }
+      });
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(value).catch(function () {
+        return fallback();
+      });
+    }
+    return fallback();
+  }
+
+  function normalizeAssistRole(role) {
+    var raw = String(role || "system").toLowerCase();
+    if (raw === "assistant" || raw === "gpt") return "gpt";
+    if (raw === "gpt_error") return "gpt_error";
+    if (raw === "user") return "user";
+    return "system";
+  }
+
+  function formatAssistRoleLabel(role) {
+    var normalized = normalizeAssistRole(role);
+    if (normalized === "user") return "You";
+    if (normalized === "gpt_error") return "GPT error";
+    if (normalized === "gpt") return "GPT";
+    return "System";
+  }
+
+  function formatAssistTs(ts) {
+    if (!ts) return "";
+    try {
+      var dt = new Date(ts);
+      if (isNaN(dt.getTime())) return "";
+      return dt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    } catch (e0) {
+      return "";
+    }
+  }
+
+  function _appendCodeBlock($el, lang, code) {
+    var ariaLabel = lang ? ("Copy " + lang + " code") : "Copy code";
+    var $copyWrap = $('<div class="assist_code_header"></div>');
+    if (lang) $copyWrap.append($('<span class="assist_code_lang"></span>').text(lang));
+    $copyWrap.append(
+      $('<button type="button" class="assist_code_copy"></button>')
+        .text("Copy")
+        .attr("aria-label", ariaLabel)
+        .data("copyText", code)
+    );
+    var $pre = $('<pre class="assist_code_block"></pre>');
+    if (lang) $pre.attr("data-lang", lang);
+    $pre.append($('<code></code>').text(code));
+    $el.append($copyWrap).append($pre);
+  }
+
+  function renderAssistBody($el, text) {
+    text = String(text || "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+    var parts = text.split(/(```[^\n]*\n[\s\S]*?```)/g);
+    for (var i = 0; i < parts.length; i++) {
+      var part = parts[i];
+      if (!part) continue;
+      var fenceMatch = part.match(/^```([^\n]*)\n([\s\S]*?)```$/);
+      if (fenceMatch) {
+        var lang = (fenceMatch[1] || "").trim().toLowerCase();
+        var code = fenceMatch[2].replace(/\n$/, "");
+        _appendCodeBlock($el, lang, code);
+      } else if (/^```/.test(part)) {
+        // Unclosed or single-line fence — degrade gracefully
+        var code = part.replace(/^```[^\n]*\n?/, "").replace(/```$/, "");
+        _appendCodeBlock($el, "", code);
+      } else {
+        $el.append(document.createTextNode(part));
+      }
+    }
+  }
+
   function appendAssistLine(role, text, opts) {
     opts = opts || {};
-    var esc = $("<div/>").text(text).html();
+    var ts = opts.ts || new Date().toISOString();
+    var normalizedRole = normalizeAssistRole(role);
     var cls =
-      role === "user"
+      normalizedRole === "user"
         ? "assist_msg_user"
-        : role === "gpt"
+        : normalizedRole === "gpt"
           ? "assist_msg_gpt"
-          : role === "gpt_error"
+          : normalizedRole === "gpt_error"
             ? "assist_msg_gpt_error"
             : "assist_msg_sys";
-    $("#assist_messages").append('<div class="assist_msg ' + cls + '">' + esc + "</div>");
-    $("#assist_messages").scrollTop($("#assist_messages")[0].scrollHeight);
+    var $msg = $('<div class="assist_msg"></div>').addClass(cls);
+    var $meta = $('<div class="assist_msg_meta"></div>');
+    $meta.append($('<span class="assist_msg_role"></span>').text(formatAssistRoleLabel(role)));
+    var prettyTs = formatAssistTs(ts);
+    if (prettyTs) {
+      $meta.append($('<span class="assist_msg_time"></span>').text(prettyTs));
+    }
+    $meta.append('<span class="assist_msg_spacer"></span>');
+    $meta.append(
+      $('<button type="button" class="assist_msg_copy"></button>')
+        .text("Copy")
+        .data("copyText", String(text || ""))
+    );
+    $msg.append($meta);
+    var $body = $('<div class="assist_msg_body"></div>');
+    renderAssistBody($body, text);
+    $msg.append($body);
+    $("#assist_messages").append($msg);
+    var list = $("#assist_messages")[0];
+    if (list) $("#assist_messages").scrollTop(list.scrollHeight);
     if (!opts.skipState) {
-      assistState.messages.push({ role: role, text: text, ts: new Date().toISOString() });
+      assistState.messages.push({ role: role, text: text, ts: ts });
       if (assistState.messages.length > 300) assistState.messages = assistState.messages.slice(-300);
       persistTranscriptCache();
     }
@@ -757,7 +988,7 @@
       var role = String(row.role || "system");
       var text = String(row.text || "");
       if (!text) continue;
-      appendAssistLine(role, text, { skipPersistMd: true });
+      appendAssistLine(role, text, { skipPersistMd: true, ts: row.ts || row.created_at || row.createdAt || "" });
     }
     if (!options.skipCache) persistTranscriptCache();
   }
@@ -955,12 +1186,26 @@
   function openAssist() {
     if (!isAssistMode()) return;
     $("#assist_panel").removeClass("hidden").attr("aria-hidden", "false");
+    refreshAssistChrome();
     syncAssistOpenaiControls();
     initAssistThreading();
   }
 
   function closeAssist() {
+    if (getPolyView() === "assist") setPolyView("");
     $("#assist_panel").addClass("hidden").attr("aria-hidden", "true");
+    setAssistStatus("", "");
+    refreshAssistChrome();
+  }
+
+  function toggleAssistFocus() {
+    var expanded = getPolyView() === "assist";
+    if (!expanded) openAssist();
+    setPolyView(expanded ? "" : "assist");
+    setAssistStatus(
+      expanded ? "Развёрнутый режим чата выключен." : "Развёрнутый режим чата включён.",
+      expanded ? "warn" : "ok"
+    );
   }
 
   function saveAssistDraft() {
@@ -1029,6 +1274,31 @@
     });
     $("#assist_close").on("click", function () {
       closeAssist();
+    });
+    $("#assist_focus").on("click", function () {
+      toggleAssistFocus();
+    });
+    $("#assist_messages").on("click", ".assist_msg_copy", function () {
+      var text = String($(this).data("copyText") || "");
+      copyTextWithFallback(text)
+        .then(function () {
+          setAssistStatus("Сообщение скопировано.", "ok");
+        })
+        .catch(function () {
+          setAssistStatus("Не удалось скопировать сообщение.", "error");
+        });
+    });
+    $("#assist_messages").on("click", ".assist_code_copy", function () {
+      var text = String($(this).data("copyText") || "");
+      var $btn = $(this);
+      copyTextWithFallback(text)
+        .then(function () {
+          $btn.text("Copied!");
+          setTimeout(function () { $btn.text("Copy"); }, 1500);
+        })
+        .catch(function () {
+          setAssistStatus("Не удалось скопировать код.", "error");
+        });
     });
     function setSendMode(mode) {
       if (mode !== "draft" && mode !== "gpt") mode = "draft";
@@ -1122,13 +1392,13 @@
     });
     $("#assist_copy_ctx").on("click", function () {
       var json = JSON.stringify(getInstrumentContext(), null, 2);
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(json).catch(function () {
-          appendAssistLine("system", json);
+      copyTextWithFallback(json)
+        .then(function () {
+          setAssistStatus("Контекст JSON скопирован.", "ok");
+        })
+        .catch(function () {
+          setAssistStatus("Не удалось скопировать контекст JSON.", "error");
         });
-      } else {
-        appendAssistLine("system", json);
-      }
     });
     $("#assist_copy_last").on("click", function () {
       var rows = assistState.messages || [];
@@ -1140,37 +1410,33 @@
         }
       }
       if (!target) {
-        appendAssistLine("system", "Пока нечего копировать: нет ответа GPT в текущем чате.");
+        setAssistStatus("Пока нечего копировать: в этом чате нет ответа GPT.", "warn");
         return;
       }
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(target).then(function () {
-          appendAssistLine("system", "Последний ответ скопирован.");
-        }).catch(function () {
-          appendAssistLine("system", target);
+      copyTextWithFallback(target)
+        .then(function () {
+          setAssistStatus("Последний ответ скопирован.", "ok");
+        })
+        .catch(function () {
+          setAssistStatus("Не удалось скопировать последний ответ.", "error");
         });
-      } else {
-        appendAssistLine("system", target);
-      }
     });
     $("#assist_copy_chat").on("click", function () {
       var rows = assistState.messages || [];
       if (!rows.length) {
-        appendAssistLine("system", "Текущий чат пуст.");
+        setAssistStatus("Текущий чат пуст.", "warn");
         return;
       }
       var text = rows.map(function (r) {
-        return "[" + String(r.role || "system") + "] " + String(r.text || "");
+        return "[" + formatAssistRoleLabel(r.role || "system") + "] " + String(r.text || "");
       }).join("\n\n");
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(function () {
-          appendAssistLine("system", "Текст чата скопирован.");
-        }).catch(function () {
-          appendAssistLine("system", text.slice(0, 5000));
+      copyTextWithFallback(text)
+        .then(function () {
+          setAssistStatus("Текст чата скопирован.", "ok");
+        })
+        .catch(function () {
+          setAssistStatus("Не удалось скопировать весь чат.", "error");
         });
-      } else {
-        appendAssistLine("system", text.slice(0, 5000));
-      }
     });
     $("#assist_musicxml").on("click", function () {
       exportMusicXMLScaleSnapshot();
@@ -1360,16 +1626,17 @@
     );
   }
 
-  function openSettings() {
-    $("#settings_backdrop").removeClass("hidden").attr("aria-hidden", "false");
-    $("#settings_poly_mode").text(getPolyMode());
-    syncSettingsModeRadios();
-    $("#settings_poly_mode_bridge").text("");
+    function openSettings() {
+      $("#settings_backdrop").removeClass("hidden").attr("aria-hidden", "false");
+      $("#settings_poly_mode").text(getPolyMode());
+      syncSettingsModeRadios();
+      $("#settings_poly_mode_bridge").text("");
     $("#settings_dialog_md").prop("checked", isDialogMdEnabled());
-    $("#settings_gpt_ping_result").text("");
-    refreshSettingsMdBridge();
-    syncAssistOpenaiControls();
-  }
+      $("#settings_gpt_ping_result").text("");
+      refreshSettingsMdBridge();
+      syncAssistOpenaiControls();
+      refreshClaudeConnectionFromHost();
+    }
 
   function closeSettings() {
     $("#settings_backdrop").addClass("hidden").attr("aria-hidden", "true");
@@ -1479,31 +1746,52 @@
 
     $("#settings_claude_save").on("click", function () {
       var k = $("#settings_claude_key").val() || "";
-      callPyApi("set_claude_api_key", k)
+      var remember = !!$("#settings_claude_remember").is(":checked");
+      var method =
+        window.pywebview && window.pywebview.api && typeof window.pywebview.api.set_claude_api_key_persist === "function"
+          ? "set_claude_api_key_persist"
+          : "set_claude_api_key";
+      var arg = method === "set_claude_api_key_persist" ? JSON.stringify({ key: k, remember: remember }) : k;
+      callPyApi(method, arg)
         .then(function () {
           $("#settings_claude_key").val("");
+          refreshClaudeConnectionFromHost();
         })
         .catch(function () {});
     });
     $("#settings_claude_clear").on("click", function () {
       $("#settings_claude_key").val("");
       callPyApi("set_claude_api_key", "")
-        .then(function () {})
+        .then(function () {
+          refreshClaudeConnectionFromHost();
+        })
         .catch(function () {});
+    });
+    $("#settings_claude_forget").on("click", function () {
+      if (!(window.pywebview && window.pywebview.api && typeof window.pywebview.api.forget_claude_api_key_persisted === "function")) {
+        $("#settings_claude_validate_result").text("Нет API forget_claude_api_key_persisted.");
+        return;
+      }
+      callPyApi("forget_claude_api_key_persisted", "")
+        .then(function () {
+          $("#settings_claude_validate_result").text("Сохранённый Claude key удалён с диска.");
+          refreshClaudeConnectionFromHost();
+        })
+        .catch(function () {
+          $("#settings_claude_validate_result").text("Не удалось удалить сохранённый Claude key.");
+        });
     });
     $("#settings_claude_copy").on("click", function () {
       var cmd = "python scripts/claude_terminal.py";
       var hint = $("#settings_claude_hint");
       var tryCopy = function (text) {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          return navigator.clipboard.writeText(text).then(function () {
-            hint.text("Скопировано в буфер: " + text + "  (перед этим в терминале: claude login)");
-          }).catch(function () {
-            hint.text("Не удалось скопировать — выделите команду вручную: " + text);
+        return copyTextWithFallback(text)
+          .then(function () {
+            hint.text("Скопировано в буфер: " + text + "  (если ключ уже сохранён, чат стартует сразу; иначе терминал запросит его один раз)");
+          })
+          .catch(function () {
+            hint.text("Не удалось скопировать — команда: " + text);
           });
-        }
-        hint.text(text);
-        return Promise.resolve();
       };
 
       // Prefer a fully-qualified "cd && python ..." for Windows users who run from arbitrary dirs.
@@ -1534,7 +1822,15 @@
       callPyApi("launch_claude_terminal_window", "")
         .then(function (raw) {
           var o = typeof raw === "string" ? JSON.parse(raw) : raw;
-          if (o && o.ok) hint.text("Открыл отдельное окно терминала (если Claude не залогинен — сначала: claude login).");
+          if (o && o.ok) {
+            if (o.key_source === "available") {
+              hint.text("Открыл стабильный Claude terminal с ключом из текущей сессии/окружения.");
+            } else if (o.launcher_mode === "python_wrapper") {
+              hint.text("Открыл стабильный Claude terminal. Если ключ не сохранён, он попросит Claude API key прямо в консоли.");
+            } else {
+              hint.text("Открыл запасной native Claude terminal. Для стабильного ввода лучше сохранить Claude key в настройках.");
+            }
+          }
           else hint.text("Не удалось открыть терминал: " + String((o && (o.message || o.error)) || raw));
         })
         .catch(function (e) {
@@ -1586,6 +1882,15 @@
     $("#settings_poly_mode_apply").on("click", function () {
       var v = $('input[name="settings_poly_mode_pick"]:checked').val();
       if (v === "offline" || v === "assist") applyPolyModeRuntime(v);
+    });
+    $("#settings_poly_mode_remember").on("change", function () {
+      try {
+        if (this.checked) {
+          localStorage.setItem(STORAGE_POLY_MODE, getPolyMode());
+        } else {
+          localStorage.removeItem(STORAGE_POLY_MODE);
+        }
+      } catch (e) {}
     });
   }
 
@@ -1642,8 +1947,10 @@
   };
 
   function boot() {
+    restorePolyModeFromStorage();
     applyPolyModeClass();
     applyPolyViewClass();
+    refreshAssistChrome();
     logToHost("boot", { poly_mode: getPolyMode(), poly_view: getPolyView() });
     initLayoutFromStorage();
     initFretBoxFromStorage();

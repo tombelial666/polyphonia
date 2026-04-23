@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="assets/scales_info.min.css">
 <link id="instrument_css" rel="stylesheet" href="assets/instrument_guitar.min.css">
 <style>
-:root{--pets-border:#3d4454;--pets-panel:rgba(22,26,36,.94);--pets-muted:#9ca3af}
+:root{--pets-border:#3d4454;--pets-panel:rgba(22,26,36,.94);--pets-muted:#9ca3af;--pets-surface:#0e1117;--pets-bg-deep:#07090f;--pets-border-sub:#1e293b;--pets-input-bg:#0b0f18;--pets-text-faint:#475569}
 html.dark_mode,html.dark_mode body{min-height:100%;color-scheme:dark}
 html.dark_mode body{
   margin:0;
@@ -94,50 +94,81 @@ html.dark_mode .scale_chord_tr>td>button:disabled{
 #stringed_display.poly_hide_s11 .s_11,#stringed_display.poly_hide_s11 #string_label_11,#stringed_display.poly_hide_s11 #string_11{display:none!important}
 #fret_note_con .sf{position:relative}
 .finger_hint{position:absolute;bottom:1px;right:1px;font-size:10px;line-height:1;color:#fbbf24;font-weight:700;pointer-events:none;text-shadow:0 0 4px #000}
-.assist_panel{position:fixed;z-index:80;right:14px;bottom:14px;width:min(440px,94vw);max-height:72vh;overflow:auto;background:rgba(17,24,39,.96);border:1px solid var(--pets-border);border-radius:10px;box-shadow:0 12px 40px rgba(0,0,0,.45);padding:12px 14px}
+.assist_panel{position:fixed;z-index:80;right:16px;bottom:16px;width:min(720px,96vw);max-height:88vh;display:flex;flex-direction:column;overflow:hidden;background:var(--pets-surface);border:1px solid var(--pets-border-sub);border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,.65);padding:14px 16px 12px}
 .poly_view_assist body{overflow:hidden}
 .poly_view_assist #poly_grid,.poly_view_assist #app_bar,.poly_view_assist #settings_backdrop{display:none!important}
-.poly_view_assist .assist_panel{position:static!important;right:auto!important;bottom:auto!important;width:auto!important;max-height:none!important;height:100vh!important;border-radius:0!important;box-shadow:none!important}
-.assist_head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
-.assist_head h3{margin:0;font-size:15px;color:#e5e7eb}
-.assist_disclaimer{font-size:11px;color:var(--pets-muted);margin-bottom:8px;line-height:1.35}
-#assist_messages{min-height:80px;max-height:220px;overflow:auto;border:1px solid #374151;border-radius:6px;padding:8px;margin-bottom:8px;background:#0b0f18}
-.assist_msg{margin:6px 0;padding:6px 8px;border-radius:6px;font-size:13px;white-space:pre-wrap;word-break:break-word}
-.assist_msg_user{background:#312e81;color:#eef2ff;border:1px solid #6366f1}
-.assist_msg_sys{background:#111827;color:#e5e7eb;border:1px solid #374151}
-.assist_msg_gpt{background:#0c1a14;color:#d1fae5;border:1px solid #059669}
-.assist_msg_gpt_error{background:#1c1410;color:#fed7aa;border:1px solid #d97706}
-.assist_inline_btn{margin-top:6px;padding:4px 8px;font-size:12px;border-radius:4px;border:1px solid #6366f1;background:#3730a3;color:#fff;cursor:pointer}
-#assist_input{width:100%;box-sizing:border-box;border-radius:6px;border:1px solid #374151;background:#0b0f18;color:#e5e7eb;padding:8px}
+.poly_view_assist .assist_panel{position:fixed!important;top:0!important;right:0!important;bottom:0!important;left:0!important;inset:0!important;width:auto!important;max-height:none!important;height:100vh!important;border-radius:0!important;box-shadow:none!important;padding:16px 20px 12px;overflow:hidden!important}
+.assist_head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--pets-border-sub)}
+.assist_head h3{margin:0;font-size:14px;font-weight:700;color:#f1f5f9;letter-spacing:.02em}
+.assist_head_actions{display:flex;gap:6px;align-items:center}
+.assist_head_actions button{margin:0;padding:5px 10px;font-size:12px;border-radius:7px;border:1px solid var(--pets-border-sub);background:var(--pets-border-sub);color:#cbd5e1;cursor:pointer;transition:background .15s}
+@media(hover:hover){.assist_head_actions button:hover{background:#334155}}
+.assist_disclaimer{font-size:11px;color:var(--pets-text-faint);margin-bottom:8px;line-height:1.4}
+#assist_status{min-height:16px;font-size:11.5px;color:var(--pets-muted);margin:0 0 6px;line-height:1.3}
+#assist_status.assist_status_ok{color:#4ade80}
+#assist_status.assist_status_warn{color:#fbbf24}
+#assist_status.assist_status_error{color:#f87171}
+#assist_messages{flex:1 1 auto;min-height:220px;max-height:clamp(220px,44vh,540px);overflow-y:auto;overflow-x:hidden;border:1px solid var(--pets-border-sub);border-radius:12px;padding:10px 12px;margin-bottom:10px;background:var(--pets-bg-deep);user-select:text}
+.poly_view_assist #assist_messages{max-height:none;min-height:0;flex:1 1 0}
+#assist_messages::-webkit-scrollbar{width:5px}
+#assist_messages::-webkit-scrollbar-track{background:transparent}
+#assist_messages::-webkit-scrollbar-thumb{background:var(--pets-border-sub);border-radius:999px}
+#assist_messages:empty::before{content:"История чата появится здесь.";display:block;color:#334155;font-size:12px;padding:6px 2px}
+.assist_msg{margin:0 0 8px;padding:10px 14px 10px 12px;border-radius:12px;border-left-width:3px;border-left-style:solid;font-size:13px;line-height:1.55;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.assist_msg:last-child{margin-bottom:0}
+.assist_msg_meta{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px;font-weight:500;letter-spacing:.03em;opacity:.85}
+.assist_msg_role{}
+.assist_msg_time{font-weight:400;opacity:.65;letter-spacing:0}
+.assist_msg_spacer{flex:1}
+.assist_msg_copy{padding:3px 8px;font-size:10px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(15,23,42,.6);color:var(--pets-muted);cursor:pointer;transition:color .15s}
+@media(hover:hover){.assist_msg_copy:hover{color:#e2e8f0}}
+.assist_msg_body{white-space:pre-wrap;word-break:break-word;user-select:text}
+.assist_msg_user{background:#1e1b4b;color:#e0e7ff;border:1px solid #3730a3;border-left-color:#818cf8}
+.assist_msg_sys{background:var(--pets-input-bg);color:var(--pets-muted);border:1px solid var(--pets-border-sub);border-left-color:#475569}
+.assist_msg_gpt{background:#021a10;color:#bbf7d0;border:1px solid #065f46;border-left-color:#34d399}
+.assist_msg_gpt_error{background:#1c0f08;color:#fed7aa;border:1px solid #92400e;border-left-color:#f97316}
+.assist_code_header{display:flex;align-items:center;justify-content:space-between;padding:5px 10px 4px;background:var(--pets-bg-deep);border:1px solid var(--pets-border-sub);border-bottom:none;border-radius:8px 8px 0 0;margin-top:8px}
+.assist_code_lang{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--pets-muted)}
+.assist_code_copy{padding:3px 8px;font-size:10px;border-radius:4px;border:1px solid var(--pets-border-sub);background:var(--pets-border-sub);color:var(--pets-muted);cursor:pointer;transition:color .15s}
+@media(hover:hover){.assist_code_copy:hover{color:#e2e8f0}}
+.assist_code_block{margin:0 0 4px;padding:12px 16px;border-radius:0 0 8px 8px;background:var(--pets-bg-deep);border:1px solid var(--pets-border-sub);overflow-x:auto;font-size:12px;line-height:1.55;white-space:pre;font-family:"Cascadia Code","Fira Code","Consolas","Courier New",monospace;color:#e2e8f0}
+.assist_code_block::-webkit-scrollbar{height:4px}
+.assist_code_block::-webkit-scrollbar-thumb{background:var(--pets-border-sub);border-radius:999px}
+.assist_code_block code{background:none;padding:0;font-family:inherit;font-size:inherit}
+.assist_inline_btn{margin-top:6px;padding:4px 10px;font-size:12px;border-radius:6px;border:1px solid #3730a3;background:#1e1b4b;color:#c7d2fe;cursor:pointer}
+#assist_input{width:100%;box-sizing:border-box;border-radius:8px;border:1px solid var(--pets-border-sub);background:var(--pets-input-bg);color:#e2e8f0;padding:9px 12px;font-size:13px;line-height:1.5;resize:vertical;font-family:inherit;transition:border-color .15s}
+#assist_input:focus{outline:none;border-color:#4f46e5;box-shadow:0 0 0 2px rgba(79,70,229,.2)}
 .assist_actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.assist_actions button{padding:6px 10px;font-size:12px;border-radius:6px;border:1px solid var(--pets-border);background:#1f2937;color:#e5e7eb;cursor:pointer}
-.assist_openai_block{margin-top:12px;padding-top:10px;border-top:1px solid #374151}
-.assist_compose{display:flex;gap:10px;align-items:stretch;margin-top:10px}
-.assist_compose textarea{flex:1;min-height:74px}
+.assist_actions button{padding:5px 10px;font-size:12px;border-radius:6px;border:1px solid var(--pets-border-sub);background:var(--pets-border-sub);color:#cbd5e1;cursor:pointer}
+.assist_openai_block{margin-top:12px;padding-top:10px;border-top:1px solid var(--pets-border-sub)}
+.assist_compose{display:flex;gap:8px;align-items:stretch;margin-top:10px}
+.assist_compose textarea{flex:1;min-height:80px}
 .assist_send_col{display:flex;flex-direction:column;align-items:stretch;gap:6px}
-.assist_mode_badge{font-size:11px;color:#a5b4fc;text-align:center;user-select:none}
-.assist_send_btn{min-width:116px;padding:10px 12px;border-radius:10px;border:1px solid #4f46e5;background:linear-gradient(90deg,#4f46e5,#0d9488);color:#fff;font-weight:800;cursor:pointer}
-.assist_send_btn:disabled{opacity:.45;cursor:not-allowed}
-.assist_mode_row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px}
-.assist_mode_seg{display:flex;gap:0;border:1px solid #374151;border-radius:10px;overflow:hidden}
-.assist_seg_btn{padding:8px 10px;background:#0b0f18;color:#e5e7eb;border:none;cursor:pointer;font-weight:700;font-size:12px}
-.assist_seg_btn.selected{background:#312e81;color:#eef2ff}
-.assist_mode_cb{font-size:12px;color:#d1d5db;user-select:none}
-.assist_goal_row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px}
-.assist_goal_row label{font-size:12px;color:#d1d5db}
-.assist_goal_row select{flex:1;max-width:260px}
-.assist_thread_row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
-.assist_thread_row select{flex:1;min-width:140px}
+.assist_mode_badge{font-size:10px;color:#818cf8;text-align:center;user-select:none;letter-spacing:.03em}
+.assist_send_btn{min-width:110px;padding:10px 14px;border-radius:10px;border:none;background:linear-gradient(135deg,#4f46e5 0%,#0d9488 100%);color:#fff;font-weight:700;font-size:13px;cursor:pointer;transition:opacity .15s}
+.assist_send_btn:disabled{opacity:.4;cursor:not-allowed}
+@media(hover:hover){.assist_send_btn:not(:disabled):hover{opacity:.88}}
+.assist_mode_row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px}
+.assist_mode_seg{display:flex;border:1px solid var(--pets-border-sub);border-radius:8px;overflow:hidden}
+.assist_seg_btn{padding:6px 12px;background:var(--pets-input-bg);color:var(--pets-muted);border:none;cursor:pointer;font-weight:600;font-size:12px;transition:background .15s,color .15s}
+.assist_seg_btn.selected{background:#1e1b4b;color:#c7d2fe}
+.assist_mode_cb{font-size:12px;color:var(--pets-muted);user-select:none}
+.assist_goal_row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}
+.assist_goal_row label{font-size:12px;color:var(--pets-muted);white-space:nowrap}
+.assist_goal_row select{flex:1;max-width:240px}
+.assist_thread_row{display:flex;gap:6px;align-items:center;margin-bottom:6px}
+.assist_thread_row select{flex:1;min-width:120px}
 .assist_thread_row button{white-space:nowrap}
-#assist_thread_hint{min-height:14px;color:#93c5fd;font-size:11px;margin-bottom:8px}
-.assist_more{margin-top:10px}
-.assist_more>summary{cursor:pointer;color:#c4b5fd;font-size:12px;font-weight:700}
-.assist_openai_title{font-size:12px;font-weight:700;color:#c4b5fd;margin-bottom:6px}
-.assist_small{font-size:11px;color:var(--pets-muted);line-height:1.35;margin-bottom:8px}
-.assist_openai_block input[type=password]{width:100%;box-sizing:border-box;margin:6px 0;padding:6px 8px;border-radius:6px;border:1px solid #374151;background:#0b0f18;color:#e5e7eb}
-.assist_openai_block label{font-size:12px;color:#d1d5db;display:block;margin:6px 0}
+#assist_thread_hint{min-height:14px;color:#7dd3fc;font-size:11px;margin-bottom:6px}
+.assist_more{margin-top:8px}
+.assist_more>summary{cursor:pointer;color:#818cf8;font-size:12px;font-weight:600}
+.assist_openai_title{font-size:12px;font-weight:700;color:#a5b4fc;margin-bottom:6px}
+.assist_small{font-size:11px;color:var(--pets-text-faint);line-height:1.35;margin-bottom:6px}
+.assist_openai_block input[type=password]{width:100%;box-sizing:border-box;margin:6px 0;padding:6px 8px;border-radius:6px;border:1px solid var(--pets-border-sub);background:var(--pets-input-bg);color:#e2e8f0}
+.assist_openai_block label{font-size:12px;color:var(--pets-muted);display:block;margin:6px 0}
 .assist_openai_row{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
-#assist_pending{margin-top:10px;padding:8px;border:1px solid #92400e;border-radius:6px;background:rgba(120,53,15,.25)}
+#assist_pending{margin-top:10px;padding:8px;border:1px solid #92400e;border-radius:8px;background:rgba(120,53,15,.2)}
+@media(max-width:460px){.assist_compose{flex-direction:column}.assist_send_col{flex-direction:row;align-items:center;justify-content:space-between}.assist_compose textarea{max-width:100%;min-height:60px}}
 #stringed_display.poly_fret_boxes #fret_note_con>.note_con[id^="f_"].poly_fb_start,
 #stringed_display.poly_fret_boxes #frets_con>.fret_con[id^="fret_"].poly_fb_start{box-shadow:inset 3px 0 0 rgba(167,139,250,.85)}
 #stringed_display.poly_fret_boxes.is_lefty #fret_note_con>.note_con[id^="f_"].poly_fb_start,
@@ -322,9 +353,10 @@ html.poly_mode_offline #assist_openai_block{display:none!important}
 <aside id="assist_panel" class="assist_panel hidden" aria-hidden="true" aria-label="Assist panel">
   <div class="assist_head">
     <h3>Assist</h3>
-    <div style="display:flex;gap:8px;align-items:center">
+    <div class="assist_head_actions">
+      <button type="button" id="assist_focus">Развернуть</button>
       <button type="button" id="assist_settings" class="assist_inline_btn" style="margin:0">Настройки</button>
-      <button type="button" id="assist_close">Close</button>
+      <button type="button" id="assist_close">Закрыть</button>
     </div>
   </div>
   <div class="assist_disclaimer">Чат в стиле ChatGPT: история → ввод → отправка. По умолчанию работает офлайн-черновик. Для GPT нужен запуск через pywebview и ключ OpenAI (env или сессия). Ответы не являются истиной грифа.</div>
@@ -333,6 +365,7 @@ html.poly_mode_offline #assist_openai_block{display:none!important}
     <button type="button" id="assist_thread_new" class="assist_inline_btn" style="margin:0">Новый чат</button>
   </div>
   <div id="assist_thread_hint"></div>
+  <div id="assist_status" aria-live="polite"></div>
   <div id="assist_messages"></div>
   <div class="assist_compose">
     <textarea id="assist_input" rows="3" placeholder="Напр.: «рифф в духе…», «как обыграть этот лад», или вставьте черновик / JSON…"></textarea>
@@ -394,9 +427,10 @@ html.poly_mode_offline #assist_openai_block{display:none!important}
       <label><input type="radio" name="settings_poly_mode_pick" value="offline" /> Офлайн</label>
       <label><input type="radio" name="settings_poly_mode_pick" value="assist" /> Assist</label>
       <button type="button" id="settings_poly_mode_apply">Применить</button>
+      <label style="margin-left:8px;white-space:nowrap"><input type="checkbox" id="settings_poly_mode_remember" /> Запомнить</label>
     </div>
     <p id="settings_poly_mode_bridge" class="assist_small" style="min-height:16px;color:#94a3b8"></p>
-    <p class="settings_hint">Следующий запуск окна: как раньше — <code>POLYPHONIA_MODE</code>, меню в <code>phrygian_app.py</code> или URL при открытии файла.</p>
+    <p class="settings_hint">Если «Запомнить» включено — режим восстановится при следующем открытии. Без галочки действует как раньше: <code>POLYPHONIA_MODE</code> или меню при запуске.</p>
     <div class="settings_section">
       <div class="settings_section_title">Подключения</div>
       <p class="settings_row" style="margin-top:0"><strong>OpenAI GPT</strong> (в этом окне через Python)</p>
@@ -412,18 +446,20 @@ html.poly_mode_offline #assist_openai_block{display:none!important}
         <button type="button" id="settings_openai_save">Сохранить в сессию</button>
         <button type="button" id="settings_openai_clear">Стереть сессионный ключ</button>
       </div>
-      <div class="settings_section_title" style="margin-top:14px">Claude (ключ для сессии)</div>
+      <div class="settings_section_title" style="margin-top:14px">Claude (ключ для сессии и терминала)</div>
       <div class="settings_check_row">
         <input type="password" id="settings_claude_key" autocomplete="off" placeholder="sk-ant-… в память процесса" />
         <button type="button" id="settings_claude_validate"><span class="settings_dot" id="settings_dot_claude"></span>Проверить Claude</button>
       </div>
       <p id="settings_claude_validate_result" class="settings_check_msg"></p>
+      <label class="settings_cb"><input type="checkbox" id="settings_claude_remember" /> Запомнить Claude key локально на этом ПК (gitignored)</label>
       <div class="settings_gpt_actions">
-        <button type="button" id="settings_claude_save">Сохранить в сессию</button>
+        <button type="button" id="settings_claude_save">Сохранить Claude key</button>
         <button type="button" id="settings_claude_clear">Стереть сессионный ключ</button>
+        <button type="button" id="settings_claude_forget">Удалить сохранённый ключ</button>
       </div>
       <div class="settings_section_title" style="margin-top:14px">Claude Code (терминал)</div>
-      <p class="settings_hint">В окне Polyphonia нет «логина» в Anthropic: чат Claude — это отдельный CLI. Один раз в терминале: <code>claude login</code>. Затем из корня репозитория:</p>
+      <p class="settings_hint">Launcher сначала открывает стабильный Claude terminal. Если ключ Claude уже сохранён, чат стартует сразу; если нет, терминал попросит ключ один раз прямо в консоли. Native Claude CLI оставлен только как запасной путь.</p>
       <div class="settings_claude_row settings_gpt_actions">
         <button type="button" id="settings_claude_copy">Скопировать команду запуска</button>
         <button type="button" id="settings_claude_openwin">Открыть терминал отдельным окном</button>

@@ -25,6 +25,9 @@ def test_build_index_html_smoke_contains_key_markers(tmp_path: Path) -> None:
     assert "<title>Polyphonia — scales & chords</title>" in html
     assert 'id="poly_settings_btn"' in html
     assert 'src="assets/polyphonia_ui.js"' in html
+    assert 'id="assist_focus"' in html
+    assert 'id="assist_status"' in html
+    assert 'id="settings_claude_remember"' in html
 
 
 def test_write_polyphonia_launchers_writes_expected_content(tmp_path: Path) -> None:

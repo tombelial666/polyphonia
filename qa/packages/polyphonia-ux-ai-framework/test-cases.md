@@ -135,6 +135,66 @@
 - **Type**: unit (Python signature) + e2e smoke
 - **Risk**: prevents “2 args given” regression
 
+### TC-SET-005 — Remember checkbox persists poly_mode to localStorage
+
+- **Type**: e2e
+- **Preconditions**: page loaded in assist mode
+- **Steps**:
+  - open settings
+  - check `#settings_poly_mode_remember`
+- **Expected**: `localStorage.getItem(“polyphonia_poly_mode”)` equals current poly_mode (`assist`)
+- **Risk**: core behaviour of the remember-session feature
+
+### TC-SET-006 — Unchecking remember clears localStorage entry
+
+- **Type**: e2e
+- **Preconditions**: `polyphonia_poly_mode` already set in localStorage
+- **Steps**:
+  - open settings (checkbox reflects saved state)
+  - uncheck `#settings_poly_mode_remember`
+- **Expected**: `localStorage.getItem(“polyphonia_poly_mode”)` is `null`
+- **Risk**: prevents stale saved mode after user opts out
+
+### TC-SET-007 — Saved mode restored from localStorage on page load
+
+- **Type**: e2e
+- **Preconditions**: `polyphonia_poly_mode = “offline”` injected into localStorage before page boots; URL hash contains `poly_mode=assist`
+- **Steps**: load page
+- **Expected**: `html` element has class `poly_mode_offline` (saved mode wins over URL hash)
+- **Risk**: ensures the boot restore path actually fires and overrides URL
+
+---
+
+## renderAssistBody — code-block rendering
+
+### TC-RENDER-001 — Standard fenced block splits into 3 parts with fence detected
+
+- **Type**: e2e (JS regex evaluation)
+- **Input**: `"Hello\n` `` ``` `` `xml\n<note>C</note>\n` `` ``` `` `\nWorld"`
+- **Expected**: `parts.length === 3`, fence part detected
+- **Risk**: core code-block rendering; regressions print raw backtick markup
+
+### TC-RENDER-002 — CRLF line endings normalised before fence detection
+
+- **Type**: e2e (JS regex evaluation)
+- **Input**: same text with `\r\n` instead of `\n`
+- **Expected**: after normalisation, `parts.length === 3`, fence found
+- **Risk**: Windows-originated GPT responses silently fail without normalisation
+
+### TC-RENDER-003 — Unclosed fence produces a degradable part, not raw text
+
+- **Type**: e2e (JS regex evaluation)
+- **Input**: `"intro\n` `` ``` `` `python\nprint('hello')"` (no closing fence)
+- **Expected**: `has_unclosed === true` (JS fallback branch handles it)
+- **Risk**: streaming/partial GPT responses should degrade gracefully
+
+### TC-RENDER-004 — Plain text produces no fence parts
+
+- **Type**: e2e (JS regex evaluation)
+- **Input**: plain sentence without backticks
+- **Expected**: `parts.length === 1`, `any_fence === false`
+- **Risk**: regression guard — plain messages must not hit code-block path
+
 ---
 
 ## Python API (phrygian_app.py) — negative paths

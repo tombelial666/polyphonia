@@ -1,0 +1,21 @@
+---
+description: MusicXML exports must also be saved to D:\projects\MIDI-MusXML
+alwaysApply: true
+---
+
+# MusicXML export: обязательное сохранение на диск
+
+Если в PETS/Polyphonia генерируется **любой MusicXML** (экспорт/снимок/вывод файла), то помимо текущего UX (например, download в браузер) нужно **обязательно сохранять копию на диск** в:
+
+- `D:\projects\MIDI-MusXML`
+
+## Требование к реализации
+
+- При запуске через `phrygian_app.py` (pywebview) MusicXML должен сохраняться автоматически через Python-API (файловая запись на стороне хоста).
+- Если приложение запущено без pywebview (просто `index.html` в браузере), допускается fallback: только download, но не ломать UX.
+
+## Чек-лист при изменениях
+
+- Новый/изменённый путь экспорта MusicXML сохраняет файл в `D:\projects\MIDI-MusXML`.
+- Имя файла безопасно (sanitize) и имеет расширение `.musicxml`.
+- Добавлен/обновлён тест на сохранение (когда это возможно без GUI).

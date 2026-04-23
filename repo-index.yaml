@@ -323,6 +323,11 @@ entries:
     status: authoritative-adapter
     role: skills
     description: Curated skills for discovery, planning, implementation, review, docs, and desktop migration.
+  - path: .agents/skills/
+    layer: adapter
+    status: authoritative-adapter
+    role: skills
+    description: Additional in-repo agent skill prompts and guidance files.
   - path: .cursor/agents/
     layer: adapter
     status: authoritative-adapter
@@ -364,6 +369,11 @@ entries:
     depends_on:
       - MANIFEST.md
       - build_index.py
+  - path: scripts/clean_chrome_bookmarks.py
+    layer: canonical
+    status: authoritative
+    role: dev-tool
+    description: Utility to clean and normalize Chrome bookmark export data for local repository tooling.
   - path: docs/dev-notes/claude-terminal-launcher.md
     layer: canonical
     status: authoritative

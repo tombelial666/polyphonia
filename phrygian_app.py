@@ -280,6 +280,89 @@ def _resolve_claude_cli_executable() -> str | None:
     return None
 
 
+def _is_python_runtime_executable(path: str | os.PathLike[str] | None) -> bool:
+    """True when the path looks like a real Python launcher, not the frozen app exe."""
+    if not path:
+        return False
+    try:
+        name = Path(path).name.lower()
+    except Exception:
+        return False
+    return name in ("python", "python.exe", "pythonw", "pythonw.exe", "py", "py.exe")
+
+
+def _resolve_python_launcher_command() -> list[str] | None:
+    """
+    Best-effort command prefix for running repo Python helpers from both dev and
+    frozen Polyphonia builds on Windows.
+    """
+    seen: set[tuple[str, ...]] = set()
+
+    def _remember(parts: list[str]) -> list[str] | None:
+        key = tuple(parts)
+        if key in seen:
+            return None
+        seen.add(key)
+        return parts
+
+    current = str(getattr(sys, "executable", "") or "").strip()
+    if _is_python_runtime_executable(current):
+        try:
+            resolved = str(Path(current).resolve())
+        except Exception:
+            resolved = current
+        remembered = _remember([resolved])
+        if remembered:
+            return remembered
+
+    for tool in ("python", "py"):
+        resolved = shutil.which(tool)
+        if not resolved:
+            continue
+        parts = [resolved]
+        if Path(resolved).name.lower() in ("py", "py.exe"):
+            parts.append("-3")
+        remembered = _remember(parts)
+        if remembered:
+            return remembered
+
+    prefixes: list[Path] = []
+    for raw in (getattr(sys, "prefix", ""), getattr(sys, "base_prefix", ""), getattr(sys, "exec_prefix", "")):
+        if not raw:
+            continue
+        try:
+            rp = Path(raw).resolve()
+        except Exception:
+            rp = Path(raw)
+        if rp not in prefixes:
+            prefixes.append(rp)
+
+    localapp = (os.environ.get("LOCALAPPDATA") or "").strip()
+    if localapp:
+        py_home = Path(localapp) / "Programs" / "Python"
+        try:
+            for candidate_dir in sorted(py_home.glob("Python*"), reverse=True):
+                if candidate_dir not in prefixes:
+                    prefixes.append(candidate_dir)
+        except Exception:
+            pass
+
+    for prefix in prefixes:
+        for candidate in (prefix / "python.exe", prefix / "Scripts" / "python.exe", prefix / "py.exe"):
+            try:
+                if not candidate.is_file():
+                    continue
+            except Exception:
+                continue
+            parts = [str(candidate)]
+            if candidate.name.lower() == "py.exe":
+                parts.append("-3")
+            remembered = _remember(parts)
+            if remembered:
+                return remembered
+    return None
+
+
 def _main_url(mode: str) -> str:
     base = get_resource_base()
     html_path = Path(base) / "index.html"
@@ -361,6 +444,15 @@ def _resolve_openai_key() -> str | None:
         return env
     if _SESSION_OPENAI_KEY:
         return _SESSION_OPENAI_KEY.strip()
+    return None
+
+
+def _resolve_claude_key() -> str | None:
+    env = (os.environ.get("ANTHROPIC_API_KEY") or "").strip()
+    if env:
+        return env
+    if _SESSION_CLAUDE_KEY:
+        return _SESSION_CLAUDE_KEY.strip()
     return None
 
 
@@ -674,30 +766,56 @@ class PolyphoniaApi:
                     },
                     ensure_ascii=False,
                 )
-            # Preflight: if Claude CLI not on PATH, keep console open with a clear message.
             cli_exe = _resolve_claude_cli_executable()
             has_claude = bool(cli_exe)
+            claude_key = _resolve_claude_key()
             creationflags = getattr(subprocess, "CREATE_NEW_CONSOLE", 0x00000010)
-            if has_claude:
-                env = os.environ.copy()
-                exe_dir = str(Path(cli_exe or "").resolve().parent)
-                if exe_dir:
-                    path_parts = (env.get("PATH") or "").split(os.pathsep)
-                    if exe_dir not in path_parts:
-                        env["PATH"] = exe_dir + os.pathsep + (env.get("PATH") or "")
-                # Use current Python interpreter so it works even if "python" isn't on PATH.
-                # Also switch console to UTF-8 to avoid broken Cyrillic prompts in some setups,
-                # and provide a sensible TERM for TUI key handling.
-                py = str(Path(sys.executable).resolve())
+            env = os.environ.copy()
+            py_cmd = _resolve_python_launcher_command()
+            if has_claude or py_cmd:
+                if has_claude:
+                    exe_dir = str(Path(cli_exe or "").resolve().parent)
+                    if exe_dir:
+                        path_parts = (env.get("PATH") or "").split(os.pathsep)
+                        if exe_dir not in path_parts:
+                            env["PATH"] = exe_dir + os.pathsep + (env.get("PATH") or "")
+                # Native Claude on Windows has had TUI input freezes in some
+                # terminals; prefer a conservative env instead of forcing TERM.
+                env["CLAUDE_CODE_DISABLE_TERMINAL_TITLE"] = "1"
+                env.pop("TERM", None)
+                if claude_key:
+                    env["POLYPHONIA_CLAUDE_API_KEY"] = claude_key
+                    env.setdefault("ANTHROPIC_API_KEY", claude_key)
+                    env.setdefault("POLYPHONIA_CLAUDE_MODEL", "claude-sonnet-4-20250514")
                 sc = str(Path(script).resolve())
-                cmdline = f'chcp 65001>nul & set "TERM=xterm-256color" & "{py}" "{sc}"'
+                launcher_mode = "direct_cli"
+                if py_cmd:
+                    launcher_mode = "python_wrapper"
+                    launch_cmd = py_cmd + [sc]
+                else:
+                    launch_cmd = [str(Path(cli_exe or "claude").resolve())]
+                # Use a real Python launcher when available so frozen Polyphonia
+                # doesn't try to execute scripts via polyphonia.exe.
+                # Switch console to UTF-8, but do not force TERM on Windows:
+                # Claude's native TUI is more stable when it probes the console itself.
+                cmdline = 'chcp 65001>nul & title PETS Claude Code & ' + subprocess.list2cmdline(launch_cmd)
                 cmd = ["cmd.exe", "/k", cmdline]
                 subprocess.Popen(cmd, cwd=str(repo_path), creationflags=creationflags, env=env)
             else:
+                launcher_mode = "missing_cli"
                 msg = "chcp 65001>nul & echo Claude CLI не найден в PATH. Установите Claude Code и выполните: claude login"
                 cmd = ["cmd.exe", "/k", msg]
                 subprocess.Popen(cmd, cwd=str(repo_path), creationflags=creationflags)
-            return json.dumps({"ok": True, "has_claude": has_claude, "claude_exe": cli_exe or ""}, ensure_ascii=False)
+            return json.dumps(
+                {
+                    "ok": True,
+                    "has_claude": has_claude,
+                    "claude_exe": cli_exe or "",
+                    "launcher_mode": launcher_mode,
+                    "key_source": "available" if claude_key else "missing",
+                },
+                ensure_ascii=False,
+            )
         except Exception as e:
             return json.dumps({"ok": False, "error": "spawn_failed", "message": str(e)}, ensure_ascii=False)
 
