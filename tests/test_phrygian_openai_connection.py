@@ -46,13 +46,14 @@ def test_forget_persisted_openai_key(monkeypatch, tmp_path) -> None:
 
 def test_save_musicxml_writes_file(monkeypatch, tmp_path) -> None:
     # Redirect export directory to temp to avoid touching real D:\
-    monkeypatch.setattr(phrygian_app, "_musicxml_export_dir", lambda: tmp_path / "mx")
+    monkeypatch.setattr(phrygian_app.musicxml_export, "resolve_musicxml_export_dir", lambda: tmp_path / "mx")
     api = phrygian_app.PolyphoniaApi(ui_mode="assist")
     payload = {"filename": "polyphonia-C-major.musicxml", "musicxml": "<score-partwise version=\"3.1\"></score-partwise>"}
     out = json.loads(api.save_musicxml(json.dumps(payload)))
     assert out["ok"] is True
     p = out["path"]
     assert p.endswith(".musicxml")
+
 
 
 def test_get_openai_connection_offline() -> None:

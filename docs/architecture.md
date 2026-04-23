@@ -12,6 +12,8 @@ PETS currently runs as a local desktop wrapper around a generated static web pag
 4. fretboard and scale behavior are driven by deterministic JavaScript data
 5. optional frozen desktop build: `polyphonia.spec` produces **Polyphonia** (`polyphonia.exe`) while the repository remains PETS
 
+Small Python runtime helpers may be extracted under `polyphonia_runtime/` as long as `phrygian_app.py -> index.html -> assets/` remains the stable execution path.
+
 ## Current Authoring Reality
 
 The codebase has mixed authoring and generated characteristics:

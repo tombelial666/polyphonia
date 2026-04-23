@@ -34,6 +34,7 @@ These files exist to help development tooling. They should follow canonical docs
 Current runnable project files:
 
 - `phrygian_app.py`
+- `polyphonia_runtime/`
 - `index.html`
 - `build_index.py`
 - `assets/`

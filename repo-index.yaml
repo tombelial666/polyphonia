@@ -73,6 +73,13 @@ entries:
     description: pywebview launcher; interactive POLYPHONIA_MODE (offline vs assist), URL poly_mode query, runtime set_poly_mode from UI, OpenAI js_api (chat, session key, get_openai_connection, openai_ping, dialog md).
     depends_on:
       - index.html
+  - path: polyphonia_runtime/
+    layer: runtime
+    status: authoritative-helper
+    role: python-package
+    description: Focused runtime helper modules extracted from phrygian_app.py to reduce shell coupling without changing the pywebview surface.
+    depends_on:
+      - phrygian_app.py
   - path: build_index.py
     layer: runtime
     status: authoritative

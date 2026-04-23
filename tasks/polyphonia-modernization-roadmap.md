@@ -145,4 +145,5 @@ flowchart LR
 
 ## Committed change record
 
+- **2026-04-23:** старт Phase 1 refactor slice: MusicXML export helper вынесен из `phrygian_app.py` в `polyphonia_runtime/musicxml_export.py`; обновлены `STRUCTURE.md`, `docs/architecture.md`, `repo-index.yaml`, покрытие расширено тестом `tests/test_musicxml_export.py`.
 - **2026-04-23:** добавлен файл `tasks/polyphonia-modernization-roadmap.md` как каноническая копия roadmap; обновлён `repo-index.yaml`.
