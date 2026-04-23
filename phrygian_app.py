@@ -792,10 +792,15 @@ class PolyphoniaApi:
                     if exe_dir not in path_parts:
                         env["PATH"] = exe_dir + os.pathsep + (env.get("PATH") or "")
                 # Use current Python interpreter so it works even if "python" isn't on PATH.
-                cmd = ["cmd.exe", "/k", sys.executable, str(script)]
+                # Also switch console to UTF-8 to avoid broken Cyrillic prompts in some setups,
+                # and provide a sensible TERM for TUI key handling.
+                py = str(Path(sys.executable).resolve())
+                sc = str(Path(script).resolve())
+                cmdline = f'chcp 65001>nul & set "TERM=xterm-256color" & "{py}" "{sc}"'
+                cmd = ["cmd.exe", "/k", cmdline]
                 subprocess.Popen(cmd, cwd=str(repo_path), creationflags=creationflags, env=env)
             else:
-                msg = "echo Claude CLI не найден в PATH. Установите Claude Code и выполните: claude login"
+                msg = "chcp 65001>nul & echo Claude CLI не найден в PATH. Установите Claude Code и выполните: claude login"
                 cmd = ["cmd.exe", "/k", msg]
                 subprocess.Popen(cmd, cwd=str(repo_path), creationflags=creationflags)
             return json.dumps({"ok": True, "has_claude": has_claude, "claude_exe": cli_exe or ""}, ensure_ascii=False)
