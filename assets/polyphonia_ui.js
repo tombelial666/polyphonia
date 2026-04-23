@@ -950,15 +950,36 @@
     $("#settings_claude_copy").on("click", function () {
       var cmd = "python scripts/claude_terminal.py";
       var hint = $("#settings_claude_hint");
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(cmd).then(function () {
-          hint.text("Скопировано в буфер: " + cmd + "  (перед этим в терминале: claude login)");
-        }).catch(function () {
-          hint.text("Не удалось скопировать — выделите команду вручную: " + cmd);
-        });
-      } else {
-        hint.text(cmd);
+      var tryCopy = function (text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          return navigator.clipboard.writeText(text).then(function () {
+            hint.text("Скопировано в буфер: " + text + "  (перед этим в терминале: claude login)");
+          }).catch(function () {
+            hint.text("Не удалось скопировать — выделите команду вручную: " + text);
+          });
+        }
+        hint.text(text);
+        return Promise.resolve();
+      };
+
+      // Prefer a fully-qualified "cd && python ..." for Windows users who run from arbitrary dirs.
+      if (window.pywebview && window.pywebview.api && typeof window.pywebview.api.get_repo_root === "function") {
+        callPyApi("get_repo_root", "")
+          .then(function (raw) {
+            var o = typeof raw === "string" ? JSON.parse(raw) : raw;
+            var root = o && o.root ? String(o.root) : "";
+            if (o && o.ok && root) {
+              var full = 'cd /d "' + root + '" && ' + cmd;
+              return tryCopy(full);
+            }
+            return tryCopy(cmd);
+          })
+          .catch(function () {
+            return tryCopy(cmd);
+          });
+        return;
       }
+      tryCopy(cmd);
     });
     $("#settings_claude_openwin").on("click", function () {
       var hint = $("#settings_claude_hint");

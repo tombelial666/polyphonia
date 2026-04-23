@@ -351,6 +351,14 @@ class PolyphoniaApi:
         return json.dumps({"ok": True}, ensure_ascii=False)
 
     @_api_log_wrap
+    def get_repo_root(self, _payload_json: str = "") -> str:
+        """Абсолютный путь к корню репозитория (для подсказок в UI)."""
+        try:
+            return json.dumps({"ok": True, "root": str(Path(get_base()).resolve())}, ensure_ascii=False)
+        except Exception as e:
+            return json.dumps({"ok": False, "error": "resolve_failed", "message": str(e)}, ensure_ascii=False)
+
+    @_api_log_wrap
     def open_assist_window(self, _payload_json: str = "") -> str:
         """
         Открепить Assist/GPT в отдельное окно (внутри pywebview).
@@ -361,8 +369,11 @@ class PolyphoniaApi:
         global _ASSIST_WINDOW
         try:
             if _ASSIST_WINDOW is not None:
-                _safe_bring_to_front(_ASSIST_WINDOW)
-                return json.dumps({"ok": True, "reused": True}, ensure_ascii=False)
+                if bool(getattr(_ASSIST_WINDOW, "closed", False)):
+                    _ASSIST_WINDOW = None
+                else:
+                    _safe_bring_to_front(_ASSIST_WINDOW)
+                    return json.dumps({"ok": True, "reused": True}, ensure_ascii=False)
         except Exception:
             _ASSIST_WINDOW = None
 
@@ -376,6 +387,10 @@ class PolyphoniaApi:
                 resizable=True,
                 js_api=self,
             )
+            try:
+                threading.Timer(0.05, lambda: _safe_bring_to_front(_ASSIST_WINDOW)).start()
+            except Exception:
+                pass
             return json.dumps({"ok": True, "created": True}, ensure_ascii=False)
         except Exception as e:
             _ASSIST_WINDOW = None
@@ -666,8 +681,7 @@ class PolyphoniaApi:
         Проверка ключа OpenAI, не сохраняя его в сессию.
         payload_json: {"key":"sk-..."} (опционально). Если key пустой, используется текущий resolved key.
         """
-        if self._ui_mode == "offline":
-            return json.dumps({"ok": False, "error": "offline_mode", "message": "Режим офлайн."}, ensure_ascii=False)
+        # Allow validation even in offline mode (startup splash can start in offline ui_mode).
         key_override = ""
         if payload_json:
             try:
