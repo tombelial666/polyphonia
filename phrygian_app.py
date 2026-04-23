@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 import webview
+from polyphonia_runtime import dialog_log
 from polyphonia_runtime import musicxml_export
 from polyphonia_runtime import session_store
 from polyphonia_runtime import thread_store
@@ -351,20 +352,6 @@ def assist_dialogs_dir() -> Path:
 
 def assist_chats_dir() -> Path:
     return session_store.chats_dir(get_base())
-
-
-def _assist_dialog_md_heading(role: str) -> str:
-    """Человекочитаемая метка в Markdown (отличить ответ GPT от системных сообщений UI)."""
-    r = (role or "note").strip().lower()
-    if r == "gpt":
-        return "GPT (OpenAI)"
-    if r == "gpt_error":
-        return "GPT (ошибка)"
-    if r == "user":
-        return "User"
-    if r == "system":
-        return "System (UI)"
-    return (role or "note").strip().replace("\n", " ")[:48] or "note"
 
 
 def _resolve_openai_key() -> str | None:
@@ -1223,23 +1210,7 @@ class PolyphoniaApi:
             return json.dumps({"ok": False, "error": "invalid_json", "message": str(e)})
         role = str(payload.get("role") or "note").strip().replace("\n", " ")[:48]
         text = str(payload.get("text") or "")
-        if len(text) > 50000:
-            text = text[:50000] + "\n\n…(truncated)\n"
-        day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-        path = assist_dialogs_dir() / f"assist-dialog-{day}.md"
-        ts = datetime.now(timezone.utc).strftime("%H:%M:%S UTC")
-        if not path.exists():
-            path.write_text(
-                f"# Polyphonia Assist — dialog log\n\n"
-                f"- Date (UTC): **{day}**\n"
-                f"- Path is under `polyphonia_sessions/dialogs/` (not committed to git).\n\n"
-                f"---\n",
-                encoding="utf-8",
-            )
-        heading = _assist_dialog_md_heading(role)
-        block = f"\n### {heading} — {ts}\n\n{text}\n\n---\n"
-        with path.open("a", encoding="utf-8") as f:
-            f.write(block)
+        path = dialog_log.append_dialog_markdown(get_base(), role=role, text=text)
         return json.dumps({"ok": True, "path": str(path.resolve())}, ensure_ascii=False)
 
     @_api_log_wrap
